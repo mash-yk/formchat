@@ -13,7 +13,7 @@ Build a form, publish it with a public link, embed it on any website as a chat w
 [![Supabase](https://img.shields.io/badge/Supabase-Postgres_%2B_Auth-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com)
 [![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com)
 
-**[Live demo](https://YOUR-APP.vercel.app)** · **[Test website with the widget](https://YOUR-TEST-SITE.netlify.app)** · **[Report a bug](https://github.com/mash-yk/formchat/issues)**
+**[Live demo](https://formchat-five.vercel.app)** · **[Test website with the widget](https://formchat-test-mash.netlify.app/)** · **[Report a bug](https://github.com/mash-yk/formchat/issues)**
 
 <img src="docs/screenshots/landing.webp" alt="Formchat landing page: espresso and bronze hero with a chat conversation" width="100%" />
 
@@ -317,6 +317,7 @@ The espresso and bronze palette is defined once in [`src/app/globals.css`](src/a
 - No conditional logic or extra question types (number, date, rating).
 - No email notifications for new responses.
 - The response list has no search or filters.
+- Email confirmation is off on the live demo, because Supabase's built-in mailer only sends to project team members. Real use would need a custom SMTP provider (e.g. Brevo or Resend).
 
 ## Author
 
