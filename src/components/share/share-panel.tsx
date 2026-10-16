@@ -23,7 +23,7 @@ type Props = {
   questions: ChatQuestion[];
 };
 
-const subscribe = () => () => { };
+const subscribe = () => () => {};
 
 /** The app's own origin — where the widget script and public links live. */
 function useOrigin() {
