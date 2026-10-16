@@ -23,13 +23,13 @@ type Props = {
   questions: ChatQuestion[];
 };
 
-const subscribe = () => () => {};
+const subscribe = () => () => { };
 
 /** The app's own origin — where the widget script and public links live. */
 function useOrigin() {
   return useSyncExternalStore(
     subscribe,
-    () => window.location.origin,
+    () => process.env.NEXT_PUBLIC_SITE_URL || window.location.origin,
     () => process.env.NEXT_PUBLIC_SITE_URL ?? "",
   );
 }

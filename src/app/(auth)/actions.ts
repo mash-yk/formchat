@@ -62,7 +62,8 @@ export async function signup(_prev: AuthState, formData: FormData): Promise<Auth
     return { fieldErrors: z.flattenError(parsed.error).fieldErrors, email };
   }
 
-  const origin = (await headers()).get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  // Prefer the canonical public URL: Vercel deployment URLs sit behind Vercel's own login.
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || (await headers()).get("origin") || "";
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     ...parsed.data,
