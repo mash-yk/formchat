@@ -57,9 +57,9 @@ async function Responses({
 
   if (total === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-zinc-300 bg-white px-6 py-16 text-center dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="rounded-xl border border-dashed border-umber-300 bg-white px-6 py-16 text-center dark:border-umber-700 dark:bg-umber-900">
         <p className="font-medium">No responses yet</p>
-        <p className="mx-auto mt-1 max-w-sm text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mx-auto mt-1 max-w-sm text-sm text-umber-600 dark:text-umber-400">
           {form.status === "published"
             ? "Share the link or embed the widget on your website — responses will show up here."
             : "Publish the form, then share the link or embed the widget to start collecting responses."}
@@ -74,7 +74,7 @@ async function Responses({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="text-sm text-umber-600 dark:text-umber-400">
           {pluralize(total, "response")} · newest first
         </p>
         <a href={`/dashboard/forms/${form.id}/responses/export`} className={buttonClass("secondary", "sm")}>
@@ -86,11 +86,11 @@ async function Responses({
         {responses.map((response, i) => (
           <li
             key={response.id}
-            className="rounded-xl border border-zinc-200 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900"
+            className="rounded-xl border border-umber-200 bg-white shadow-xs dark:border-umber-800 dark:bg-umber-900"
           >
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-zinc-100 px-4 py-3 sm:px-5 dark:border-zinc-800">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-umber-100 px-4 py-3 sm:px-5 dark:border-umber-800">
               <span className="text-sm font-semibold">#{total - from - i}</span>
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              <span className="text-sm text-umber-600 dark:text-umber-400">
                 <LocalTime iso={response.submitted_at} />
               </span>
               <SourceBadge source={response.source} />
@@ -101,17 +101,17 @@ async function Responses({
             <dl className="grid gap-x-6 gap-y-3 px-4 py-4 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] sm:px-5">
               {response.answers.map((a) => (
                 <div key={a.questionId} className="contents">
-                  <dt className="text-sm text-zinc-500">{a.label}</dt>
+                  <dt className="text-sm text-umber-400">{a.label}</dt>
                   <dd
                     className={cn(
                       "-mt-2 text-sm whitespace-pre-wrap break-words sm:mt-0",
-                      a.value ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400",
+                      a.value ? "text-umber-900 dark:text-umber-100" : "text-umber-400",
                     )}
                   >
                     {a.type === "email" && a.value ? (
                       <a
                         href={`mailto:${a.value}`}
-                        className="text-indigo-600 hover:underline dark:text-indigo-400"
+                        className="text-bronze-600 hover:underline dark:text-bronze-400"
                       >
                         {a.value}
                       </a>
@@ -131,7 +131,7 @@ async function Responses({
           <PageLink formId={form.id} page={page - 1} disabled={page <= 1}>
             ← Newer
           </PageLink>
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+          <span className="text-sm text-umber-600 dark:text-umber-400">
             Page {page} of {pageCount}
           </span>
           <PageLink formId={form.id} page={page + 1} disabled={page >= pageCount}>
@@ -175,7 +175,7 @@ function SourceBadge({ source }: { source: FormResponse["source"] }) {
   const embed = source === "embed";
   const Icon = embed ? Globe : Link2;
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+    <span className="inline-flex items-center gap-1 rounded-full bg-umber-100 px-2 py-0.5 text-xs font-medium text-umber-600 dark:bg-umber-800 dark:text-umber-300">
       <Icon className="size-3" aria-hidden />
       {embed ? "Website widget" : "Public link"}
     </span>
@@ -186,7 +186,7 @@ function ResponsesSkeleton() {
   return (
     <div className="space-y-3" aria-busy="true" aria-label="Loading responses">
       {[0, 1, 2].map((i) => (
-        <div key={i} className="h-36 animate-pulse rounded-xl bg-zinc-200/60 dark:bg-zinc-800" />
+        <div key={i} className="h-36 animate-pulse rounded-xl bg-umber-200/60 dark:bg-umber-800" />
       ))}
     </div>
   );

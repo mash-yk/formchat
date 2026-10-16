@@ -18,7 +18,7 @@ export default function DashboardPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Your forms</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="mt-1 text-sm text-umber-600 dark:text-umber-400">
             Create forms, publish them and collect responses through your chat widget.
           </p>
         </div>
@@ -48,7 +48,7 @@ async function DashboardContent() {
       {forms.length === 0 ? (
         <EmptyState />
       ) : (
-        <ul className="divide-y divide-zinc-200 overflow-hidden rounded-xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+        <ul className="divide-y divide-umber-200 overflow-hidden rounded-xl border border-umber-200 bg-white dark:divide-umber-800 dark:border-umber-800 dark:bg-umber-900">
           {forms.map((form) => (
             <FormRow key={form.id} form={form} />
           ))}
@@ -64,12 +64,12 @@ function FormRow({ form }: { form: FormListItem }) {
     <li className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
       <div className="min-w-0 space-y-1">
         <div className="flex flex-wrap items-center gap-2">
-          <Link href={base} className="truncate font-medium hover:text-indigo-600 hover:underline">
+          <Link href={base} className="truncate font-medium hover:text-bronze-300 hover:underline">
             {form.title}
           </Link>
           <StatusBadge status={form.status} />
         </div>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-umber-400">
           {pluralize(form.questionCount, "question")} ·{" "}
           <Link href={`${base}/responses`} className="hover:underline">
             {pluralize(form.responseCount, "response")}
@@ -96,18 +96,20 @@ function FormRow({ form }: { form: FormListItem }) {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-      <dt className="text-sm text-zinc-600 dark:text-zinc-400">{label}</dt>
-      <dd className="mt-1 text-3xl font-semibold tabular-nums tracking-tight">{value}</dd>
+    <div className="rounded-xl border border-umber-200 bg-white p-5 dark:border-umber-800 dark:bg-umber-900">
+      <dt className="text-sm text-umber-600 dark:text-umber-400">{label}</dt>
+      <dd className="text-bronze-metal mt-1 font-display text-4xl font-bold tabular-nums tracking-tight">
+        {value}
+      </dd>
     </div>
   );
 }
 
 function EmptyState() {
   return (
-    <div className="rounded-xl border border-dashed border-zinc-300 bg-white px-6 py-16 text-center dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="rounded-xl border border-dashed border-umber-300 bg-white px-6 py-16 text-center dark:border-umber-700 dark:bg-umber-900">
       <p className="font-medium">No forms yet</p>
-      <p className="mx-auto mt-1 mb-6 max-w-sm text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="mx-auto mt-1 mb-6 max-w-sm text-sm text-umber-600 dark:text-umber-400">
         Create your first form, add a few questions and publish it to start collecting responses.
       </p>
       <div className="flex justify-center">
@@ -122,10 +124,10 @@ function DashboardSkeleton() {
     <div className="space-y-8" aria-busy="true" aria-label="Loading">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-24 animate-pulse rounded-xl bg-zinc-200/60 dark:bg-zinc-800" />
+          <div key={i} className="h-24 animate-pulse rounded-xl bg-umber-200/60 dark:bg-umber-800" />
         ))}
       </div>
-      <div className="h-48 animate-pulse rounded-xl bg-zinc-200/60 dark:bg-zinc-800" />
+      <div className="h-48 animate-pulse rounded-xl bg-umber-200/60 dark:bg-umber-800" />
     </div>
   );
 }

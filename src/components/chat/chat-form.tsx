@@ -181,6 +181,7 @@ export function ChatForm({ form, mode, source = "link", variant = "page", autoFo
     messages.push({ key: "failed", from: "bot", text: failure, tone: "error" });
 
   const style = {
+    colorScheme: "light",
     "--fc-primary": settings.primaryColor,
     "--fc-on-primary": readableTextColor(settings.primaryColor),
   } as React.CSSProperties;
@@ -191,7 +192,7 @@ export function ChatForm({ form, mode, source = "link", variant = "page", autoFo
     <div
       style={style}
       className={cn(
-        "relative flex h-full min-h-0 flex-col overflow-hidden bg-white text-zinc-900",
+        "relative flex h-full min-h-0 flex-col overflow-hidden bg-white text-umber-900",
         variant === "embed" && "h-dvh",
       )}
     >
@@ -230,7 +231,7 @@ export function ChatForm({ form, mode, source = "link", variant = "page", autoFo
         role="log"
         aria-live="polite"
         aria-label="Conversation"
-        className="flex-1 space-y-3 overflow-y-auto overscroll-contain bg-zinc-50 px-4 py-4"
+        className="flex-1 space-y-3 overflow-y-auto overscroll-contain bg-umber-50 px-4 py-4"
       >
         {messages.map((m) => (
           <Bubble key={m.key} message={m} />
@@ -239,7 +240,7 @@ export function ChatForm({ form, mode, source = "link", variant = "page", autoFo
       </div>
 
       {/* Input area */}
-      <div className="border-t border-zinc-200 bg-white p-3">
+      <div className="border-t border-umber-200 bg-white p-3">
         <input
           ref={honeypotRef}
           type="text"
@@ -267,7 +268,7 @@ export function ChatForm({ form, mode, source = "link", variant = "page", autoFo
           <button
             type="button"
             onClick={restart}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-umber-200 px-4 py-2.5 text-sm font-medium text-umber-700 transition hover:bg-umber-50"
           >
             <RotateCcw className="size-4" aria-hidden />
             {mode === "preview" ? "Restart preview" : "Submit another response"}
@@ -283,7 +284,7 @@ export function ChatForm({ form, mode, source = "link", variant = "page", autoFo
         ) : (
           // Placeholder while the bot is "typing": shows where answers go, without being usable yet.
           <div aria-hidden className="flex items-end gap-2">
-            <div className="h-11 flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm text-zinc-400">
+            <div className="h-11 flex-1 rounded-xl border border-umber-200 bg-umber-50 px-3.5 py-2.5 text-sm text-umber-400">
               {total === 0 && introShown ? "Nothing to answer yet" : "Type your answer…"}
             </div>
             <div className="size-11 shrink-0 rounded-xl bg-(--fc-primary) opacity-40" />
@@ -302,13 +303,13 @@ function Bubble({ message }: { message: Message }) {
         className={cn(
           "max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-sm leading-relaxed shadow-xs",
           fromBot
-            ? "rounded-bl-md bg-white text-zinc-800 ring-1 ring-zinc-200"
+            ? "rounded-bl-md bg-white text-umber-800 ring-1 ring-umber-200"
             : "rounded-br-md bg-(--fc-primary) text-(--fc-on-primary)",
           message.tone === "error" && "bg-red-50 text-red-800 ring-red-200",
         )}
       >
         {message.text}
-        {message.note && <span className="ml-1.5 text-xs text-zinc-400">({message.note})</span>}
+        {message.note && <span className="ml-1.5 text-xs text-umber-500">({message.note})</span>}
       </div>
     </div>
   );
@@ -317,11 +318,11 @@ function Bubble({ message }: { message: Message }) {
 function TypingIndicator() {
   return (
     <div className="flex justify-start" aria-label="Typing">
-      <div className="flex gap-1 rounded-2xl rounded-bl-md bg-white px-4 py-3 shadow-xs ring-1 ring-zinc-200">
+      <div className="flex gap-1 rounded-2xl rounded-bl-md bg-white px-4 py-3 shadow-xs ring-1 ring-umber-200">
         {[0, 150, 300].map((delay) => (
           <span
             key={delay}
-            className="size-1.5 animate-bounce rounded-full bg-zinc-400"
+            className="size-1.5 animate-bounce rounded-full bg-umber-400"
             style={{ animationDelay: `${delay}ms` }}
           />
         ))}
@@ -350,7 +351,7 @@ function AnswerInput({
     <button
       type="button"
       onClick={() => onAnswer("")}
-      className="shrink-0 rounded-xl px-3 py-2 text-sm font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
+      className="shrink-0 rounded-xl px-3 py-2 text-sm font-medium text-umber-500 transition hover:bg-umber-100 hover:text-umber-800"
     >
       Skip
     </button>
@@ -397,7 +398,7 @@ function AnswerInput({
     "aria-describedby": error ? errorId : undefined,
     placeholder: isEmail ? "name@example.com" : "Type your answer…",
     className:
-      "min-w-0 flex-1 resize-none rounded-xl border border-zinc-300 bg-white px-3.5 py-2.5 text-base text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-(--fc-primary) focus:ring-2 focus:ring-(--fc-primary)/20 aria-invalid:border-red-500 sm:text-sm",
+      "min-w-0 flex-1 resize-none rounded-xl border border-umber-300 bg-white px-3.5 py-2.5 text-base text-umber-900 outline-none transition placeholder:text-umber-400 focus:border-(--fc-primary) focus:ring-2 focus:ring-(--fc-primary)/20 aria-invalid:border-red-500 sm:text-sm",
   };
 
   return (

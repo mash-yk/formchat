@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useActionState } from "react";
+import { buttonClass } from "@/components/ui/button";
 import { login, signup, type AuthState } from "./actions";
 
 type Mode = "login" | "signup";
@@ -40,8 +41,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
     return (
       <div className="space-y-3 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">{state.message}</p>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="text-sm text-umber-600 dark:text-umber-400">{state.message}</p>
+        <p className="text-sm text-umber-600 dark:text-umber-400">
           Click the link in the email to finish signing up.
         </p>
       </div>
@@ -54,7 +55,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     <div className="space-y-6">
       <div className="space-y-1 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">{t.title}</h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">{t.subtitle}</p>
+        <p className="text-sm text-umber-600 dark:text-umber-400">{t.subtitle}</p>
       </div>
 
       <form action={formAction} className="space-y-4" noValidate>
@@ -86,18 +87,17 @@ export function AuthForm({ mode }: { mode: Mode }) {
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <button type="submit" disabled={pending} className={buttonClass("primary", "md", "w-full")}>
           {pending ? t.pending : t.submit}
         </button>
       </form>
 
-      <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="text-center text-sm text-umber-600 dark:text-umber-400">
         {t.switchText}{" "}
-        <Link href={t.switchLink.href} className="font-medium text-indigo-600 hover:underline">
+        <Link
+          href={t.switchLink.href}
+          className="font-medium text-bronze-400 hover:text-bronze-300 hover:underline"
+        >
           {t.switchLink.label}
         </Link>
       </p>
@@ -129,7 +129,7 @@ function Field({
         required
         aria-invalid={Boolean(errors?.length)}
         aria-describedby={describedBy}
-        className="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm shadow-xs outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 aria-invalid:border-red-500 dark:border-zinc-700 dark:bg-zinc-900"
+        className="block w-full rounded-lg border border-umber-300 bg-white px-3 py-2 text-sm shadow-xs outline-none transition focus:border-bronze-500 focus:ring-2 focus:ring-bronze-500/20 aria-invalid:border-red-500 dark:border-umber-700 dark:bg-umber-900"
         {...input}
       />
       {errors?.length ? (
@@ -137,7 +137,7 @@ function Field({
           {errors[0]}
         </p>
       ) : hint ? (
-        <p id={`${name}-hint`} className="text-xs text-zinc-500">
+        <p id={`${name}-hint`} className="text-xs text-umber-400">
           {hint}
         </p>
       ) : null}

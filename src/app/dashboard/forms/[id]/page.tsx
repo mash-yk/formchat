@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Edit form" };
 
 export default function EditFormPage({ params }: PageProps<"/dashboard/forms/[id]">) {
   return (
-    <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-zinc-200/60 dark:bg-zinc-800" />}>
+    <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-umber-200/60 dark:bg-umber-800" />}>
       <Builder params={params} />
     </Suspense>
   );

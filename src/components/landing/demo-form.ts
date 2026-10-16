@@ -5,7 +5,7 @@ export const demoForm: ChatFormData = {
   title: "Sunny Side Bakery",
   slug: "demo",
   settings: {
-    primaryColor: "#4f46e5",
+    primaryColor: "#a96325",
     welcomeMessage: "Hi! 👋 Ordering a celebration cake? I’ll take your details in a few quick questions.",
     completionMessage: "Thanks! We’ll email you a quote today. 🎂 (This was a demo — nothing was saved.)",
   },

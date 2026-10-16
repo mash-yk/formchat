@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Share & embed" };
 
 export default function SharePage({ params }: PageProps<"/dashboard/forms/[id]/share">) {
   return (
-    <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-zinc-200/60 dark:bg-zinc-800" />}>
+    <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-umber-200/60 dark:bg-umber-800" />}>
       <Share params={params} />
     </Suspense>
   );

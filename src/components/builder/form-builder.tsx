@@ -133,8 +133,8 @@ export function FormBuilder({ formId, slug, status, settings, initial }: Props) 
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="sticky top-16 z-20 -mx-4 flex items-center gap-3 border-b border-zinc-200 bg-zinc-50/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 dark:border-zinc-800 dark:bg-zinc-950/90">
-        <div className="flex rounded-lg border border-zinc-200 bg-white p-0.5 lg:hidden dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="sticky top-16 z-20 -mx-4 flex items-center gap-3 border-b border-umber-200 bg-umber-50/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 dark:border-umber-800 dark:bg-umber-950/90">
+        <div className="flex rounded-lg border border-umber-200 bg-white p-0.5 lg:hidden dark:border-umber-800 dark:bg-umber-900">
           {(["edit", "preview"] as const).map((v) => (
             <button
               key={v}
@@ -144,8 +144,8 @@ export function FormBuilder({ formId, slug, status, settings, initial }: Props) 
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium capitalize",
                 mobileView === v
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100",
+                  ? "bg-bronze-metal text-umber-950"
+                  : "text-umber-600 hover:text-umber-900 dark:text-umber-400 dark:hover:text-umber-100",
               )}
             >
               {v === "edit" ? (
@@ -158,7 +158,7 @@ export function FormBuilder({ formId, slug, status, settings, initial }: Props) 
           ))}
         </div>
 
-        <p className="hidden text-sm text-zinc-500 sm:block" aria-live="polite">
+        <p className="hidden text-sm text-umber-400 sm:block" aria-live="polite">
           {pending
             ? "Saving…"
             : showErrors && errorCount
@@ -169,7 +169,7 @@ export function FormBuilder({ formId, slug, status, settings, initial }: Props) 
         </p>
 
         <div className="ml-auto flex items-center gap-2">
-          <span className="hidden text-xs text-zinc-400 md:inline">Ctrl + S</span>
+          <span className="hidden text-xs text-umber-400 md:inline">Ctrl + S</span>
           <button
             type="button"
             onClick={save}
@@ -191,7 +191,7 @@ export function FormBuilder({ formId, slug, status, settings, initial }: Props) 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         {/* Editor */}
         <div className={cn("space-y-4", mobileView === "preview" && "hidden lg:block")}>
-          <section className="space-y-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-xs sm:p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <section className="space-y-3 rounded-xl border border-umber-200 bg-white p-4 shadow-xs sm:p-5 dark:border-umber-800 dark:bg-umber-900">
             <div>
               <label htmlFor="form-title" className="mb-1.5 block text-sm font-medium">
                 Form title
@@ -211,7 +211,7 @@ export function FormBuilder({ formId, slug, status, settings, initial }: Props) 
             </div>
             <div>
               <label htmlFor="form-description" className="mb-1.5 block text-sm font-medium">
-                Description <span className="font-normal text-zinc-500">(optional, only you see it)</span>
+                Description <span className="font-normal text-umber-400">(optional, only you see it)</span>
               </label>
               <textarea
                 id="form-description"
@@ -227,9 +227,9 @@ export function FormBuilder({ formId, slug, status, settings, initial }: Props) 
           </section>
 
           {state.questions.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-zinc-300 bg-white px-6 py-10 text-center dark:border-zinc-700 dark:bg-zinc-900">
+            <div className="rounded-xl border border-dashed border-umber-300 bg-white px-6 py-10 text-center dark:border-umber-700 dark:bg-umber-900">
               <p className="font-medium">No questions yet</p>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="mt-1 text-sm text-umber-600 dark:text-umber-400">
                 Pick a question type below to add your first question.
               </p>
             </div>
@@ -264,11 +264,11 @@ export function FormBuilder({ formId, slug, status, settings, initial }: Props) 
 
           <section
             aria-label="Add a question"
-            className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+            className="rounded-xl border border-umber-200 bg-white p-4 dark:border-umber-800 dark:bg-umber-900"
           >
             <p className="mb-3 text-sm font-medium">
               Add a question{" "}
-              <span className="font-normal text-zinc-500">
+              <span className="font-normal text-umber-400">
                 ({state.questions.length}/{LIMITS.questions})
               </span>
             </p>
@@ -279,9 +279,9 @@ export function FormBuilder({ formId, slug, status, settings, initial }: Props) 
                   type="button"
                   onClick={() => dispatch({ type: "add", questionType: type })}
                   disabled={state.questions.length >= LIMITS.questions}
-                  className="flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2.5 text-left text-sm font-medium transition hover:border-indigo-300 hover:bg-indigo-50 disabled:opacity-50 dark:border-zinc-700 dark:hover:border-indigo-700 dark:hover:bg-indigo-950/30"
+                  className="flex items-center gap-2 rounded-lg border border-umber-200 px-3 py-2.5 text-left text-sm font-medium transition hover:border-bronze-300 hover:bg-bronze-50 disabled:opacity-50 dark:border-umber-700 dark:hover:border-bronze-700 dark:hover:bg-bronze-950/30"
                 >
-                  <Icon className="size-4 shrink-0 text-indigo-600 dark:text-indigo-400" aria-hidden />
+                  <Icon className="size-4 shrink-0 text-bronze-600 dark:text-bronze-400" aria-hidden />
                   {QUESTION_TYPE_LABELS[type]}
                 </button>
               ))}
@@ -294,13 +294,13 @@ export function FormBuilder({ formId, slug, status, settings, initial }: Props) 
           aria-label="Live preview"
           className={cn("lg:sticky lg:top-36 lg:self-start", mobileView === "edit" && "hidden lg:block")}
         >
-          <p className="mb-2 flex items-center gap-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+          <p className="mb-2 flex items-center gap-1.5 text-sm font-medium text-umber-600 dark:text-umber-400">
             <Eye className="size-4" aria-hidden /> Live preview
           </p>
-          <div className="h-[min(600px,calc(100dvh-14rem))] min-h-[420px] overflow-hidden rounded-2xl border border-zinc-200 shadow-lg dark:border-zinc-800">
+          <div className="h-[min(600px,calc(100dvh-14rem))] min-h-[420px] overflow-hidden rounded-2xl border border-umber-200 shadow-lg dark:border-umber-800">
             <ChatForm form={previewForm} mode="preview" variant="card" autoFocus={false} />
           </div>
-          <p className="mt-2 text-xs text-zinc-500">
+          <p className="mt-2 text-xs text-umber-400">
             Colors and messages can be customized on the Share &amp; embed tab.
           </p>
         </aside>

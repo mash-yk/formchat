@@ -16,7 +16,10 @@ const lines: { from: "bot" | "user"; text: string }[] = [
 export function HeroConversation() {
   return (
     <div aria-hidden className="relative mx-auto w-full max-w-md">
-      <div className="space-y-3 rounded-[28px] bg-white p-5 shadow-[0_30px_60px_-30px_rgba(26,24,56,0.35)] ring-1 ring-ink/5 sm:p-6">
+      {/* bronze glow behind the card */}
+      <div className="absolute -inset-10 -z-10 rounded-full bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--color-bronze-500)_45%,transparent),transparent)] blur-2xl" />
+
+      <div className="space-y-3 rounded-[28px] bg-umber-900/80 p-5 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.9)] ring-1 ring-bronze-300/15 backdrop-blur sm:p-6">
         {lines.map((line, i) => (
           <div
             key={i}
@@ -27,8 +30,8 @@ export function HeroConversation() {
               className={cn(
                 "max-w-[80%] rounded-2xl px-4 py-2.5 text-[15px] leading-snug",
                 line.from === "bot"
-                  ? "rounded-bl-md bg-lilac text-ink"
-                  : "rounded-br-md bg-indigo-600 text-white",
+                  ? "rounded-bl-md bg-umber-800 text-umber-100"
+                  : "bg-bronze-metal rounded-br-md font-medium text-umber-950",
               )}
             >
               {line.text}
@@ -38,7 +41,7 @@ export function HeroConversation() {
       </div>
 
       <div
-        className="hero-bubble absolute -bottom-6 left-1/2 flex w-max -translate-x-1/2 items-center gap-2.5 rounded-full bg-ink py-2 pr-4 pl-2.5 text-sm text-white shadow-lg sm:left-auto sm:-right-4 sm:translate-x-0"
+        className="hero-bubble absolute -bottom-6 left-1/2 flex w-max -translate-x-1/2 items-center gap-2.5 rounded-full bg-umber-950 py-2 pr-4 pl-2.5 text-sm text-umber-100 shadow-lg ring-1 ring-bronze-400/30 sm:left-auto sm:-right-4 sm:translate-x-0"
         style={{ animationDelay: `${300 + lines.length * 550 + 250}ms` }}
       >
         <CircleCheck className="size-5 text-emerald-400" />

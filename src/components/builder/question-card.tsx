@@ -20,8 +20,8 @@ type Props = {
 };
 
 const iconButton =
-  "grid size-8 place-items-center rounded-lg text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 " +
-  "disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-zinc-100";
+  "grid size-8 place-items-center rounded-lg text-umber-400 transition hover:bg-umber-100 hover:text-umber-900 " +
+  "disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-umber-800 dark:hover:text-umber-100";
 
 export function QuestionCard({ question: q, index, count, errors, autoFocus, dispatch }: Props) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
@@ -41,14 +41,14 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "rounded-xl border bg-white shadow-xs dark:bg-zinc-900",
+        "rounded-xl border bg-white shadow-xs dark:bg-umber-900",
         isDragging
-          ? "relative z-10 border-indigo-400 shadow-lg ring-2 ring-indigo-500/20"
-          : "border-zinc-200 dark:border-zinc-800",
+          ? "relative z-10 border-bronze-400 shadow-lg ring-2 ring-bronze-500/20"
+          : "border-umber-200 dark:border-umber-800",
       )}
     >
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 border-b border-zinc-100 px-2 py-1.5 dark:border-zinc-800">
+      <div className="flex flex-wrap items-center gap-1 border-b border-umber-100 px-2 py-1.5 dark:border-umber-800">
         <button
           type="button"
           ref={setActivatorNodeRef}
@@ -59,7 +59,7 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
         >
           <GripVertical className="size-4" />
         </button>
-        <span className="mr-1 text-xs font-semibold text-zinc-500">Q{n}</span>
+        <span className="mr-1 text-xs font-semibold text-umber-400">Q{n}</span>
 
         <label className="sr-only" htmlFor={`type-${q.id}`}>
           Question type
@@ -70,7 +70,7 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
           onChange={(e) =>
             dispatch({ type: "change_type", id: q.id, questionType: e.target.value as QuestionDraft["type"] })
           }
-          className="h-8 rounded-lg border border-zinc-200 bg-white px-2 text-xs font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200"
+          className="h-8 rounded-lg border border-umber-200 bg-white px-2 text-xs font-medium text-umber-700 dark:border-umber-700 dark:bg-umber-950 dark:text-umber-200"
         >
           {QUESTION_TYPES.map((t) => (
             <option key={t} value={t}>
@@ -79,7 +79,7 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
           ))}
         </select>
 
-        <label className="ml-2 inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-zinc-600 select-none dark:text-zinc-400">
+        <label className="ml-2 inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-umber-600 select-none dark:text-umber-400">
           <input
             type="checkbox"
             checked={q.required}
@@ -88,7 +88,7 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
           />
           <span
             aria-hidden
-            className="relative h-5 w-9 rounded-full bg-zinc-300 transition peer-checked:bg-indigo-600 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-indigo-600 after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-4 dark:bg-zinc-700"
+            className="relative h-5 w-9 rounded-full bg-umber-300 transition peer-checked:bg-bronze-600 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-bronze-600 after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-4 dark:bg-umber-700"
           />
           Required
         </label>
@@ -161,7 +161,7 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
 
         {q.type === "multiple_choice" && (
           <fieldset className="space-y-2">
-            <legend className="mb-1 text-xs font-medium text-zinc-500">Options</legend>
+            <legend className="mb-1 text-xs font-medium text-umber-400">Options</legend>
             {(q.options ?? []).map((option, i) => {
               const err = errors[`options.${i}`];
               return (
@@ -169,7 +169,7 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
                   <div className="flex items-center gap-2">
                     <span
                       aria-hidden
-                      className="size-4 shrink-0 rounded-full border-2 border-zinc-300 dark:border-zinc-600"
+                      className="size-4 shrink-0 rounded-full border-2 border-umber-300 dark:border-umber-600"
                     />
                     <input
                       value={option}
@@ -199,7 +199,7 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
               <button
                 type="button"
                 onClick={() => dispatch({ type: "option_add", id: q.id })}
-                className="ml-6 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/40"
+                className="ml-6 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-bronze-600 hover:bg-bronze-50 dark:text-bronze-400 dark:hover:bg-bronze-950/40"
               >
                 <Plus className="size-4" aria-hidden /> Add option
               </button>
@@ -212,7 +212,7 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
             {["Yes", "No"].map((l) => (
               <span
                 key={l}
-                className="rounded-full border border-zinc-300 px-3 py-1 text-xs text-zinc-500 dark:border-zinc-700"
+                className="rounded-full border border-umber-300 px-3 py-1 text-xs text-umber-400 dark:border-umber-700"
               >
                 {l}
               </span>
@@ -221,7 +221,7 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
         )}
 
         {(q.type === "text" || q.type === "email") && (
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-umber-400">
             {q.type === "email"
               ? "Respondents type an email address — it’s checked for a valid format."
               : "Respondents type a free-text answer."}

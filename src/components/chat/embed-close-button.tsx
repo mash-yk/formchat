@@ -9,7 +9,7 @@ export function EmbedCloseButton() {
       type="button"
       aria-label="Close chat"
       onClick={() => window.parent?.postMessage({ type: "formchat:close" }, "*")}
-      className="absolute top-3 right-3 grid size-9 place-items-center rounded-full text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900"
+      className="absolute top-3 right-3 grid size-9 place-items-center rounded-full text-umber-500 transition hover:bg-umber-100 hover:text-umber-900"
     >
       <X className="size-5" />
     </button>

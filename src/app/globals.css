@@ -1,9 +1,11 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * Formchat is always dark: espresso-brown surfaces with bronze accents.
+ * `dark:` utilities are driven by the `dark` class on <html> (see layout.tsx)
+ * instead of the visitor's OS setting, so the brand looks the same everywhere.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -13,24 +15,92 @@
   --font-display: var(--font-bricolage);
 }
 
-/* Landing page palette */
+/*
+ * Brand palette — tweak these two scales to re-theme the whole app.
+ *   umber:  warm brown neutrals (surfaces, borders, text)
+ *   bronze: metallic accent (buttons, links, highlights, focus rings)
+ * Contrast checked: umber-50 on umber-950 17.7:1 · umber-400 on umber-950 6.0:1 ·
+ * umber-950 on bronze-400 7.8:1 · white on bronze-600 4.7:1.
+ */
 @theme {
-  --color-ink: #1a1838;
-  --color-paper: #f6f6fb;
-  --color-lilac: #e6e4ff;
-  --color-slate-ink: #5c5a78;
+  --color-umber-50: #faf5ef;
+  --color-umber-100: #f1e7dc;
+  --color-umber-200: #e0cfbd;
+  --color-umber-300: #c8b098;
+  --color-umber-400: #a68c74;
+  --color-umber-500: #85705c;
+  --color-umber-600: #665546;
+  --color-umber-700: #4b3d31;
+  --color-umber-800: #33281f;
+  --color-umber-900: #221912;
+  --color-umber-950: #140e0a;
+
+  --color-bronze-50: #fdf6ec;
+  --color-bronze-100: #fae8cf;
+  --color-bronze-200: #f4cd98;
+  --color-bronze-300: #ebb066;
+  --color-bronze-400: #df9644;
+  --color-bronze-500: #cb7d2e;
+  --color-bronze-600: #a96325;
+  --color-bronze-700: #874d22;
+  --color-bronze-800: #6c3e20;
+  --color-bronze-900: #58341d;
+  --color-bronze-950: #321a0d;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: var(--color-umber-950);
+  --foreground: var(--color-umber-50);
+  color-scheme: dark;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+::selection {
+  background: var(--color-bronze-400);
+  color: var(--color-umber-950);
+}
+
+/* Metallic bronze fill for buttons and badges. */
+@utility bg-bronze-metal {
+  background-image: linear-gradient(
+    180deg,
+    var(--color-bronze-200) 0%,
+    var(--color-bronze-400) 45%,
+    var(--color-bronze-500) 100%
+  );
+}
+
+/* Metallic bronze text (the landing headline). */
+@utility text-bronze-metal {
+  background-image: linear-gradient(
+    175deg,
+    var(--color-bronze-50) 5%,
+    var(--color-bronze-200) 35%,
+    var(--color-bronze-400) 70%,
+    var(--color-bronze-600) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Fine film grain for large dark surfaces — keeps flat brown from looking muddy. */
+@utility grain {
+  position: relative;
+  isolation: isolate;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.07;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
 }
 
 /* Chat bubble entrance (used by the chat widget). */

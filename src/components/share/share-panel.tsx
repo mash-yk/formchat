@@ -83,7 +83,7 @@ export function SharePanel({ formId, slug, title, status, settings, questions }:
             href={publicUrl}
             target="_blank"
             rel="noreferrer"
-            className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+            className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-bronze-600 hover:underline dark:text-bronze-400"
           >
             Open in a new tab <ExternalLink className="size-3.5" aria-hidden />
           </a>
@@ -96,7 +96,7 @@ export function SharePanel({ formId, slug, title, status, settings, questions }:
           description="Paste this snippet just before the closing </body> tag of any page."
         >
           <div className="mb-3 flex items-center gap-3 text-sm">
-            <span className="text-zinc-600 dark:text-zinc-400">Bubble position</span>
+            <span className="text-umber-600 dark:text-umber-400">Bubble position</span>
             {(["right", "left"] as const).map((p) => (
               <label key={p} className="inline-flex cursor-pointer items-center gap-1.5 capitalize">
                 <input
@@ -105,24 +105,25 @@ export function SharePanel({ formId, slug, title, status, settings, questions }:
                   value={p}
                   checked={position === p}
                   onChange={() => setPosition(p)}
-                  className="accent-indigo-600"
+                  className="accent-bronze-600"
                 />
                 Bottom {p}
               </label>
             ))}
           </div>
-          <div className="relative">
-            <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 pr-24 text-xs leading-relaxed text-zinc-100">
-              <code>{snippet}</code>
-            </pre>
-            <div className="absolute top-2 right-2">
+          <div className="overflow-hidden rounded-lg bg-umber-950 ring-1 ring-umber-800">
+            <div className="flex items-center justify-between gap-3 border-b border-umber-800 px-3 py-2">
+              <span className="text-xs text-umber-400">HTML</span>
               <CopyButton value={snippet} label="Copy code" />
             </div>
+            <pre className="overflow-x-auto p-4 text-xs leading-relaxed text-umber-100">
+              <code>{snippet}</code>
+            </pre>
           </div>
           <button type="button" onClick={downloadTestPage} className={buttonClass("secondary", "sm", "mt-3")}>
             <Download className="size-4" aria-hidden /> Download a test website
           </button>
-          <p className="mt-2 text-xs text-zinc-500">
+          <p className="mt-2 text-xs text-umber-400">
             A ready-made demo page with your widget already embedded. Open it from your computer to try the
             widget on a site that isn’t Formchat.
           </p>
@@ -182,7 +183,7 @@ function WidgetCustomizer({ formId, slug, title, settings, questions }: Omit<Pro
                   onClick={() => update("primaryColor", c)}
                   aria-label={`Use color ${c}`}
                   aria-pressed={values.primaryColor.toLowerCase() === c}
-                  className="grid size-8 place-items-center rounded-full ring-offset-2 transition hover:scale-110 aria-pressed:ring-2 aria-pressed:ring-zinc-900 dark:ring-offset-zinc-900 dark:aria-pressed:ring-zinc-100"
+                  className="grid size-8 place-items-center rounded-full outline-1 -outline-offset-1 outline-white/20 ring-offset-2 transition hover:scale-110 aria-pressed:ring-2 aria-pressed:ring-umber-900 dark:ring-offset-umber-900 dark:aria-pressed:ring-bronze-300"
                   style={{ background: c, color: readableTextColor(c) }}
                 >
                   {values.primaryColor.toLowerCase() === c && <Check className="size-4" aria-hidden />}
@@ -194,7 +195,7 @@ function WidgetCustomizer({ formId, slug, title, settings, questions }: Omit<Pro
                   type="color"
                   value={validColor ? values.primaryColor : "#000000"}
                   onChange={(e) => update("primaryColor", e.target.value)}
-                  className="size-8 cursor-pointer rounded-full border border-zinc-300 bg-transparent p-0.5 dark:border-zinc-700"
+                  className="size-8 cursor-pointer rounded-full border border-umber-300 bg-transparent p-0.5 dark:border-umber-700"
                 />
               </label>
               <input
@@ -254,9 +255,9 @@ function WidgetCustomizer({ formId, slug, title, settings, questions }: Omit<Pro
 
         {/* Preview */}
         <div>
-          <p className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">Preview</p>
-          <div className="relative rounded-2xl bg-zinc-100 p-4 pb-20 dark:bg-zinc-800/60">
-            <div className="h-[440px] overflow-hidden rounded-2xl shadow-xl ring-1 ring-zinc-200">
+          <p className="mb-2 text-sm font-medium text-umber-600 dark:text-umber-400">Preview</p>
+          <div className="relative rounded-2xl bg-umber-100 p-4 pb-20 dark:bg-umber-800/60">
+            <div className="h-[440px] overflow-hidden rounded-2xl shadow-xl ring-1 ring-umber-200">
               <ChatForm
                 form={{ title, slug, settings: { ...values, primaryColor: previewColor }, questions }}
                 mode="preview"
@@ -300,7 +301,7 @@ function MessageField({
       <label htmlFor={id} className="block text-sm font-medium">
         {label}
       </label>
-      <p className="mb-1.5 text-xs text-zinc-500">{hint}</p>
+      <p className="mb-1.5 text-xs text-umber-400">{hint}</p>
       <textarea
         id={id}
         rows={2}
@@ -328,14 +329,14 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+    <section className="rounded-xl border border-umber-200 bg-white p-5 shadow-xs dark:border-umber-800 dark:bg-umber-900">
       <div className="mb-4 flex gap-3">
-        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
+        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-bronze-50 text-bronze-600 dark:bg-bronze-950/50 dark:text-bronze-400">
           <Icon className="size-5" aria-hidden />
         </span>
         <div>
           <h2 className="font-semibold">{title}</h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">{description}</p>
+          <p className="text-sm text-umber-600 dark:text-umber-400">{description}</p>
         </div>
       </div>
       {children}

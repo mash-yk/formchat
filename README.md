@@ -58,6 +58,17 @@ Key decisions:
 - **Responses store a snapshot.** Each answer saves the question's label and type at submit time, so editing or deleting questions later never breaks old responses.
 - **Atomic saves.** The builder saves title, description and all questions through one Postgres function (`save_form`) in a single transaction. Existing question ids are kept.
 
+## Theming
+
+The app uses an espresso-brown and bronze palette, defined once in `src/app/globals.css`:
+
+- **`umber`** (warm brown neutrals) is used for surfaces, borders and text. **`bronze`** (metallic accent) is used for buttons, links, highlights and focus rings.
+- `bg-bronze-metal` and `text-bronze-metal` add the metallic gradient. `grain` adds the subtle film texture.
+- The app is always dark: `dark:` utilities are keyed to the `dark` class on `<html>`.
+- The chat widget stays light, so it fits on any customer's website. Its default brand color is bronze `#a96325`, and owners can change it per form.
+
+Every text and background pairing was checked against WCAG AA contrast.
+
 ## Security model
 
 - **Row Level Security** on every table. Owners can only read and change their own forms, questions and responses. Visitors can only read _published_ forms.

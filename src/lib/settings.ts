@@ -1,20 +1,20 @@
 import type { FormSettings } from "./types";
 
 export const DEFAULT_SETTINGS: Required<FormSettings> = {
-  primaryColor: "#4f46e5",
+  primaryColor: "#a96325",
   welcomeMessage: "Hi there! 👋 This will only take a minute.",
   completionMessage: "Thanks! Your response has been recorded. 🎉",
 };
 
 export const COLOR_PRESETS = [
-  "#4f46e5", // indigo
-  "#2563eb", // blue
-  "#0891b2", // cyan
-  "#059669", // emerald
+  "#a96325", // bronze (default)
+  "#6c3e20", // espresso
   "#d97706", // amber
+  "#059669", // emerald
+  "#0891b2", // cyan
+  "#2563eb", // blue
   "#e11d48", // rose
-  "#7c3aed", // violet
-  "#18181b", // zinc
+  "#18181b", // charcoal
 ];
 
 /** Fills in defaults for any setting the owner hasn't customized. */

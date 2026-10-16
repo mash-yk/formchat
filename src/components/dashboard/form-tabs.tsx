@@ -25,8 +25,8 @@ export function FormTabs({ formId }: { formId: string }) {
             className={cn(
               "whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition",
               active
-                ? "border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400"
-                : "border-transparent text-zinc-600 hover:border-zinc-300 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100",
+                ? "border-bronze-600 text-bronze-600 dark:border-bronze-400 dark:text-bronze-400"
+                : "border-transparent text-umber-600 hover:border-umber-300 hover:text-umber-900 dark:text-umber-400 dark:hover:text-umber-100",
             )}
           >
             {tab.label}

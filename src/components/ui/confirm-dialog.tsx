@@ -43,15 +43,15 @@ export function ConfirmDialog({
         if (e.target === ref.current && !pending) onCancel(); // click on backdrop
       }}
       aria-labelledby="confirm-title"
-      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-zinc-200 bg-white p-0 text-zinc-900 shadow-xl backdrop:bg-zinc-950/50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-umber-200 bg-white p-0 text-umber-900 shadow-xl backdrop:bg-umber-950/50 dark:border-umber-800 dark:bg-umber-900 dark:text-umber-100"
     >
       <div className="space-y-2 p-6">
         <h2 id="confirm-title" className="text-lg font-semibold">
           {title}
         </h2>
-        <div className="text-sm text-zinc-600 dark:text-zinc-400">{description}</div>
+        <div className="text-sm text-umber-600 dark:text-umber-400">{description}</div>
       </div>
-      <div className="flex justify-end gap-2 border-t border-zinc-200 bg-zinc-50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-950/40">
+      <div className="flex justify-end gap-2 border-t border-umber-200 bg-umber-50 px-6 py-4 dark:border-umber-800 dark:bg-umber-950/40">
         <button type="button" className={buttonClass("secondary")} onClick={onCancel} disabled={pending}>
           Cancel
         </button>

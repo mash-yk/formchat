@@ -15,12 +15,12 @@ export default function FormLayout({ children, params }: LayoutProps<"/dashboard
       <div className="space-y-6">
         <GuardedLink
           href="/dashboard"
-          className="inline-flex items-center gap-1 text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+          className="inline-flex items-center gap-1 text-sm text-umber-600 hover:text-umber-900 dark:text-umber-400 dark:hover:text-umber-100"
         >
           <ArrowLeft className="size-4" aria-hidden /> All forms
         </GuardedLink>
         <Suspense
-          fallback={<div className="h-28 animate-pulse rounded-xl bg-zinc-200/60 dark:bg-zinc-800" />}
+          fallback={<div className="h-28 animate-pulse rounded-xl bg-umber-200/60 dark:bg-umber-800" />}
         >
           <FormHeader params={params} />
         </Suspense>
@@ -36,14 +36,14 @@ async function FormHeader({ params }: { params: Promise<{ id: string }> }) {
   if (!form) notFound();
 
   return (
-    <header className="border-b border-zinc-200 dark:border-zinc-800">
+    <header className="border-b border-umber-200 dark:border-umber-800">
       <div className="flex flex-wrap items-start justify-between gap-4 pb-4">
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="truncate text-2xl font-semibold tracking-tight">{form.title}</h1>
             <StatusBadge status={form.status} />
           </div>
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-umber-400">
             Public link: <span className="font-mono">/f/{form.slug}</span>
           </p>
         </div>
