@@ -25,12 +25,11 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // The chat widget iframe must be embeddable on any website.
+        // The chat widget iframe must be embeddable on any website, so it sends NO framing
+        // restriction at all. (Don't use `frame-ancestors *`: browsers read `*` as
+        // "http/https/ws/wss pages only", which blocks pages opened from disk via file://.)
         source: "/embed/:slug*",
-        headers: [
-          { key: "Content-Security-Policy", value: "frame-ancestors *" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-        ],
+        headers: [{ key: "X-Content-Type-Options", value: "nosniff" }],
       },
       {
         // The loader script is fetched by other websites.
