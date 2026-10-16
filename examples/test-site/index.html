@@ -1,0 +1,51 @@
+<!doctype html>
+<!--
+  A pretend customer website for testing the Formchat widget on a DIFFERENT origin.
+
+  1. Replace YOUR-APP-URL with your Formchat URL (e.g. https://formchat-abc.vercel.app
+     or http://localhost:3000) and YOUR-FORM-SLUG with a published form's slug
+     (Dashboard → your form → Share & embed shows the exact snippet).
+  2. Open this file in a browser, or host it anywhere — e.g. drag the folder onto
+     https://app.netlify.com/drop or push it to GitHub Pages.
+
+  Tip: the "Download a test website" button on the Share & embed page generates
+  this same page with your snippet already filled in.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sunny Side Bakery — widget test</title>
+    <style>
+      body { margin: 0; font-family: Georgia, "Times New Roman", serif; color: #3b2f2f; background: #fff8ef; }
+      header { display: flex; justify-content: space-between; align-items: center; padding: 20px 32px; background: #f4d9b0; }
+      header strong { font-size: 22px; }
+      nav a { margin-left: 18px; color: #3b2f2f; }
+      main { max-width: 720px; margin: 0 auto; padding: 48px 24px; line-height: 1.7; }
+      h1 { font-size: 40px; margin: 0 0 12px; }
+      .note { margin-top: 32px; padding: 16px; border: 2px dashed #d4a373; border-radius: 12px; font-family: system-ui, sans-serif; font-size: 14px; }
+      code { background: #fbe8cf; padding: 2px 6px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong>🥐 Sunny Side Bakery</strong>
+      <nav><a href="#">Menu</a><a href="#">About</a><a href="#">Visit</a></nav>
+    </header>
+    <main>
+      <h1>Fresh bread every morning</h1>
+      <p>
+        This is a pretend website used to test the Formchat widget. Its fonts and colors are deliberately
+        different from Formchat's, to show that the widget's styles stay isolated.
+      </p>
+      <p>
+        Click the chat bubble in the corner and answer the questions. Then open your Formchat dashboard →
+        Responses: the new response appears with the source “Website widget”.
+      </p>
+      <div class="note">The only line added to this page is the embed snippet just before <code>&lt;/body&gt;</code>.</div>
+    </main>
+
+    <!-- Formchat widget -->
+    <script src="YOUR-APP-URL/widget.js" data-form="YOUR-FORM-SLUG" async></script>
+  </body>
+</html>
