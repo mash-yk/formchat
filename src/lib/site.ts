@@ -5,5 +5,5 @@ export const site = {
   description:
     "Build forms, embed them on any website as a friendly chat widget and manage every response from one dashboard.",
   githubUrl: "https://github.com/mash-yk/formchat",
-  contactEmail: "hello@example.com", // ← change to your email
+  contactEmail: "mashrekinyakub02@gmail.com",
 };
