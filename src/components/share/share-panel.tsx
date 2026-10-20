@@ -1,16 +1,21 @@
 "use client";
 
 import {
+  AlignLeft,
+  AlignRight,
   Bot,
   Check,
   Code2,
   Download,
   ExternalLink,
+  Laptop,
   Link2,
   MessageCircle,
+  Moon,
   Palette,
   Smile,
   Sparkles,
+  Sun,
   User,
 } from "lucide-react";
 import { useState, useSyncExternalStore, useTransition } from "react";
@@ -31,6 +36,18 @@ import { ChatForm } from "../chat/chat-form";
 import { PublishButton } from "../dashboard/publish-button";
 import { buttonClass, inputClass } from "../ui/button";
 import { CopyButton } from "../ui/copy-button";
+import { CustomSelect } from "../ui/custom-select";
+
+const THEME_OPTIONS = [
+  { value: "light", label: "Light", icon: <Sun className="size-4" /> },
+  { value: "dark", label: "Dark", icon: <Moon className="size-4" /> },
+  { value: "auto", label: "System Auto", icon: <Laptop className="size-4" /> },
+];
+
+const POSITION_OPTIONS = [
+  { value: "right", label: "Bottom Right", icon: <AlignRight className="size-4" /> },
+  { value: "left", label: "Bottom Left", icon: <AlignLeft className="size-4" /> },
+];
 
 type Props = {
   formId: string;
@@ -381,28 +398,21 @@ function WidgetCustomizer({
           {/* 4. Theme & Position */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium">Theme Mode</label>
-              <select
+              <label className="block text-sm font-medium mb-1">Theme Mode</label>
+              <CustomSelect
                 value={values.theme}
-                onChange={(e) => update("theme", e.target.value as "light" | "dark" | "auto")}
-                className={cn(inputClass, "mt-1 text-sm")}
-              >
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="auto">System Auto</option>
-              </select>
+                onChange={(val) => update("theme", val as "light" | "dark" | "auto")}
+                options={THEME_OPTIONS}
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium">Launcher Position</label>
-              <select
+              <label className="block text-sm font-medium mb-1">Launcher Position</label>
+              <CustomSelect
                 value={values.position}
-                onChange={(e) => update("position", e.target.value as "right" | "left")}
-                className={cn(inputClass, "mt-1 text-sm")}
-              >
-                <option value="right">Bottom Right</option>
-                <option value="left">Bottom Left</option>
-              </select>
+                onChange={(val) => update("position", val as "right" | "left")}
+                options={POSITION_OPTIONS}
+              />
             </div>
           </div>
 

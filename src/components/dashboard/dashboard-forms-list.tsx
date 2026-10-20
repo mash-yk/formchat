@@ -13,6 +13,7 @@ import { FORM_TEMPLATES } from "@/lib/templates";
 import type { FormListItem } from "@/lib/forms";
 import { cn, pluralize } from "@/lib/utils";
 import { buttonClass } from "../ui/button";
+import { CustomSelect } from "../ui/custom-select";
 import { LocalTime } from "../ui/local-time";
 import { DeleteFormButton } from "./delete-form-button";
 import { DuplicateFormButton } from "./duplicate-form-button";
@@ -116,16 +117,18 @@ export function DashboardFormsList({ forms }: { forms: FormListItem[] }) {
           {/* Sort Selector */}
           <div className="flex items-center gap-1.5 text-xs text-umber-500">
             <ArrowUpDown className="size-3.5" />
-            <select
+            <CustomSelect
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="rounded-lg border border-umber-200 bg-white px-2 py-1.5 text-xs font-medium text-umber-800 dark:border-umber-700 dark:bg-umber-900 dark:text-umber-200"
-            >
-              <option value="updated_desc">Recently updated</option>
-              <option value="updated_asc">Oldest first</option>
-              <option value="responses_desc">Most responses</option>
-              <option value="title_asc">Title A-Z</option>
-            </select>
+              onChange={(val) => setSortBy(val as SortOption)}
+              options={[
+                { value: "updated_desc", label: "Recently updated" },
+                { value: "updated_asc", label: "Oldest first" },
+                { value: "responses_desc", label: "Most responses" },
+                { value: "title_asc", label: "Title A-Z" },
+              ]}
+              size="sm"
+              className="w-40"
+            />
           </div>
 
           <button

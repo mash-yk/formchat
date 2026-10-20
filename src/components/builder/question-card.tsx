@@ -19,6 +19,7 @@ import { QUESTION_TYPES, type ConditionalOperator, type QuestionDraft } from "@/
 import { cn } from "@/lib/utils";
 import { LIMITS, QUESTION_TYPE_LABELS } from "@/lib/validation";
 import { inputClass } from "../ui/button";
+import { CustomSelect } from "../ui/custom-select";
 import type { BuilderAction } from "./builder-state";
 
 type Props = {
@@ -87,27 +88,23 @@ export function QuestionCard({
         <label className="sr-only" htmlFor={`type-${q.id}`}>
           Question type
         </label>
-        <div className="relative inline-flex items-center">
-          <select
-            id={`type-${q.id}`}
-            value={q.type}
-            onChange={(e) =>
-              dispatch({
-                type: "change_type",
-                id: q.id,
-                questionType: e.target.value as QuestionDraft["type"],
-              })
-            }
-            className="h-8 appearance-none rounded-lg border border-umber-200 bg-white pr-7 pl-2.5 text-xs font-medium text-umber-700 transition hover:border-umber-300 focus:border-bronze-500 focus:ring-1 focus:ring-bronze-500/20 dark:border-umber-700 dark:bg-umber-950 dark:text-umber-200"
-          >
-            {QUESTION_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {QUESTION_TYPE_LABELS[t]}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-2 size-3.5 text-umber-400" />
-        </div>
+        <CustomSelect
+          id={`type-${q.id}`}
+          value={q.type}
+          onChange={(val) =>
+            dispatch({
+              type: "change_type",
+              id: q.id,
+              questionType: val as QuestionDraft["type"],
+            })
+          }
+          options={QUESTION_TYPES.map((t) => ({
+            value: t,
+            label: QUESTION_TYPE_LABELS[t],
+          }))}
+          size="sm"
+          className="w-36"
+        />
 
         <label className="ml-2 inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-umber-600 select-none dark:text-umber-400">
           <input
@@ -284,22 +281,24 @@ export function QuestionCard({
         {q.type === "file" && (
           <div className="flex flex-wrap items-center gap-3 text-xs text-umber-600 dark:text-umber-400">
             <span>Max file size:</span>
-            <select
-              value={q.validation?.maxFileSizeMB ?? 5}
-              onChange={(e) =>
+            <CustomSelect
+              value={String(q.validation?.maxFileSizeMB ?? 5)}
+              onChange={(val) =>
                 dispatch({
                   type: "update_validation",
                   id: q.id,
-                  validation: { ...(q.validation ?? {}), maxFileSizeMB: Number(e.target.value) },
+                  validation: { ...(q.validation ?? {}), maxFileSizeMB: Number(val) },
                 })
               }
-              className="rounded-md border border-umber-200 bg-white px-2 py-1 text-xs dark:border-umber-700 dark:bg-umber-950"
-            >
-              <option value={2}>2 MB</option>
-              <option value={5}>5 MB</option>
-              <option value={10}>10 MB</option>
-              <option value={25}>25 MB</option>
-            </select>
+              options={[
+                { value: "2", label: "2 MB" },
+                { value: "5", label: "5 MB" },
+                { value: "10", label: "10 MB" },
+                { value: "25", label: "25 MB" },
+              ]}
+              size="sm"
+              className="w-24"
+            />
             <span className="text-umber-400">(Supports documents, images, PDF)</span>
           </div>
         )}
@@ -367,10 +366,9 @@ export function QuestionCard({
                     <span className="font-medium text-umber-700 dark:text-umber-300">
                       Show this question if:
                     </span>
-                    <select
+                    <CustomSelect
                       value={q.logic?.dependsOn ?? ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
+                      onChange={(val) => {
                         if (!val) {
                           dispatch({ type: "update_logic", id: q.id, logic: null });
                         } else {
@@ -385,75 +383,81 @@ export function QuestionCard({
                           });
                         }
                       }}
-                      className="rounded border border-umber-300 bg-white px-2 py-1 text-xs dark:border-umber-700 dark:bg-umber-900"
-                    >
-                      <option value="">Always show (No condition)</option>
-                      {priorQuestions.map((pq, pi) => (
-                        <option key={pq.id} value={pq.id}>
-                          Q{pi + 1}: {pq.label || `Question ${pi + 1}`}
-                        </option>
-                      ))}
-                    </select>
+                      options={[
+                        { value: "", label: "Always show (No condition)" },
+                        ...priorQuestions.map((pq, pi) => ({
+                          value: pq.id,
+                          label: `Q${pi + 1}: ${pq.label || `Question ${pi + 1}`}`,
+                        })),
+                      ]}
+                      size="sm"
+                      className="min-w-44 flex-1"
+                    />
 
                     {q.logic?.dependsOn && (
-                      <select
+                      <CustomSelect
                         value={q.logic.operator}
-                        onChange={(e) =>
+                        onChange={(val) =>
                           dispatch({
                             type: "update_logic",
                             id: q.id,
                             logic: {
                               ...q.logic!,
-                              operator: e.target.value as ConditionalOperator,
+                              operator: val as ConditionalOperator,
                             },
                           })
                         }
-                        className="rounded border border-umber-300 bg-white px-2 py-1 text-xs dark:border-umber-700 dark:bg-umber-900"
-                      >
-                        <option value="is_answered">is answered</option>
-                        <option value="equals">equals</option>
-                        <option value="not_equals">does not equal</option>
-                        <option value="contains">contains</option>
-                      </select>
+                        options={[
+                          { value: "is_answered", label: "is answered" },
+                          { value: "equals", label: "equals" },
+                          { value: "not_equals", label: "does not equal" },
+                          { value: "contains", label: "contains" },
+                        ]}
+                        size="sm"
+                        className="w-36"
+                      />
                     )}
 
                     {q.logic?.dependsOn && q.logic.operator !== "is_answered" && (
                       <>
                         {parentQuestion?.options?.length ? (
-                          <select
+                          <CustomSelect
                             value={q.logic.value ?? ""}
-                            onChange={(e) =>
+                            onChange={(val) =>
                               dispatch({
                                 type: "update_logic",
                                 id: q.id,
-                                logic: { ...q.logic!, value: e.target.value },
+                                logic: { ...q.logic!, value: val },
                               })
                             }
-                            className="rounded border border-umber-300 bg-white px-2 py-1 text-xs dark:border-umber-700 dark:bg-umber-900"
-                          >
-                            <option value="">Select expected value…</option>
-                            {parentQuestion.options.map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
+                            options={[
+                              { value: "", label: "Select expected value…" },
+                              ...parentQuestion.options.map((opt) => ({
+                                value: opt,
+                                label: opt,
+                              })),
+                            ]}
+                            size="sm"
+                            className="min-w-36 flex-1"
+                          />
                         ) : parentQuestion?.type === "yes_no" ? (
-                          <select
+                          <CustomSelect
                             value={q.logic.value ?? ""}
-                            onChange={(e) =>
+                            onChange={(val) =>
                               dispatch({
                                 type: "update_logic",
                                 id: q.id,
-                                logic: { ...q.logic!, value: e.target.value },
+                                logic: { ...q.logic!, value: val },
                               })
                             }
-                            className="rounded border border-umber-300 bg-white px-2 py-1 text-xs dark:border-umber-700 dark:bg-umber-900"
-                          >
-                            <option value="">Select Yes or No…</option>
-                            <option value="yes">Yes</option>
-                            <option value="no">No</option>
-                          </select>
+                            options={[
+                              { value: "", label: "Select Yes or No…" },
+                              { value: "yes", label: "Yes" },
+                              { value: "no", label: "No" },
+                            ]}
+                            size="sm"
+                            className="w-32"
+                          />
                         ) : (
                           <input
                             type="text"
