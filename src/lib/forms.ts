@@ -3,7 +3,7 @@ import { cache } from "react";
 import { requireUser } from "./auth";
 import { createPublicClient } from "./supabase/public";
 import { createClient } from "./supabase/server";
-import type { ChatFormData, Form, FormWithQuestions } from "./types";
+import type { ChatFormData, ChatQuestion, Form, FormSettings, FormWithQuestions, Question, QuestionType } from "./types";
 import { UUID_RE } from "./utils";
 
 /**
@@ -13,6 +13,24 @@ import { UUID_RE } from "./utils";
  */
 
 const QUESTION_COLUMNS = "id, form_id, type, label, required, options, position";
+
+function hydrateQuestion(
+  raw: Record<string, unknown> & { id: string },
+  metaMap?: FormSettings["questionMeta"],
+): Question {
+  const meta = metaMap?.[raw.id];
+  return {
+    id: raw.id,
+    form_id: (raw.form_id as string) ?? "",
+    type: (meta?.type || (raw.type as string)) as QuestionType,
+    label: (raw.label as string) ?? "",
+    required: Boolean(raw.required),
+    options: (meta?.options as string[] | null) ?? (raw.options as string[] | null) ?? null,
+    position: (raw.position as number) ?? 0,
+    logic: meta?.logic ?? (raw.logic as Question["logic"]) ?? null,
+    validation: meta?.validation ?? (raw.validation as Question["validation"]) ?? null,
+  };
+}
 
 /** One of the current user's forms with its questions, or null. Cached per request. */
 export const getOwnedForm = cache(
@@ -31,8 +49,18 @@ export const getOwnedForm = cache(
 
     if (error) throw new Error(`Could not load form: ${error.message}`);
     if (!data) return null;
-    const { responses, ...form } = data;
-    return { ...form, responseCount: responses[0]?.count ?? 0 };
+    const { responses, questions, settings, ...form } = data;
+
+    const hydratedQuestions = (questions ?? []).map((q) =>
+      hydrateQuestion(q, settings?.questionMeta),
+    );
+
+    return {
+      ...form,
+      settings: settings ?? {},
+      questions: hydratedQuestions,
+      responseCount: responses[0]?.count ?? 0,
+    };
   },
 );
 
@@ -70,24 +98,39 @@ export async function getPublishedForm(slug: string): Promise<ChatFormData | nul
   const supabase = await createPublicClient();
   const { data, error } = await supabase
     .from("forms")
-    .select("title, slug, settings, questions(id, type, label, required, options, position)")
+    .select("id, title, slug, settings, questions(id, form_id, type, label, required, options, position)")
     .eq("slug", slug)
     .eq("status", "published")
     .order("position", { referencedTable: "questions" })
-    .maybeSingle<ChatFormData>();
+    .maybeSingle<{
+      id: string;
+      title: string;
+      slug: string;
+      settings: FormSettings;
+      questions: Array<Record<string, unknown> & { id: string }>;
+    }>();
 
   if (error) throw new Error(`Could not load form: ${error.message}`);
   if (!data) return null;
+
+  const settings = data.settings ?? {};
+  const questions: ChatQuestion[] = (data.questions ?? []).map((q) => {
+    const hydrated = hydrateQuestion(q, settings.questionMeta);
+    return {
+      id: hydrated.id,
+      type: hydrated.type,
+      label: hydrated.label,
+      required: hydrated.required,
+      options: hydrated.options,
+      logic: hydrated.logic,
+      validation: hydrated.validation,
+    };
+  });
+
   return {
     title: data.title,
     slug: data.slug,
-    settings: data.settings ?? {},
-    questions: data.questions.map(({ id, type, label, required, options }) => ({
-      id,
-      type,
-      label,
-      required,
-      options,
-    })),
+    settings,
+    questions,
   };
 }

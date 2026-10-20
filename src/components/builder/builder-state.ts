@@ -1,5 +1,5 @@
 import { arrayMove } from "@dnd-kit/sortable";
-import type { QuestionDraft, QuestionType } from "@/lib/types";
+import type { ConditionalLogic, QuestionDraft, QuestionType, QuestionValidation } from "@/lib/types";
 import { uuid } from "@/lib/utils";
 import { LIMITS } from "@/lib/validation";
 
@@ -16,6 +16,8 @@ export type BuilderAction =
   | { type: "set_description"; value: string }
   | { type: "add"; questionType: QuestionType }
   | { type: "update"; id: string; patch: Partial<Pick<QuestionDraft, "label" | "required">> }
+  | { type: "update_logic"; id: string; logic: ConditionalLogic | null }
+  | { type: "update_validation"; id: string; validation: QuestionValidation | null }
   | { type: "change_type"; id: string; questionType: QuestionType }
   | { type: "remove"; id: string }
   | { type: "duplicate"; id: string }
@@ -24,6 +26,7 @@ export type BuilderAction =
   | { type: "option_add"; id: string }
   | { type: "option_update"; id: string; index: number; value: string }
   | { type: "option_remove"; id: string; index: number }
+  | { type: "load_questions"; questions: QuestionDraft[] }
   | { type: "reset"; state: BuilderState };
 
 const DEFAULT_OPTIONS = ["Option 1", "Option 2"];
@@ -34,7 +37,14 @@ export function newQuestion(type: QuestionType): QuestionDraft {
     type,
     label: "",
     required: true,
-    options: type === "multiple_choice" ? [...DEFAULT_OPTIONS] : null,
+    options: type === "multiple_choice" || type === "dropdown" ? [...DEFAULT_OPTIONS] : null,
+    logic: null,
+    validation:
+      type === "rating"
+        ? { minRating: 1, maxRating: 5 }
+        : type === "file"
+          ? { maxFileSizeMB: 5 }
+          : null,
   };
 }
 
@@ -55,16 +65,26 @@ export function builderReducer(state: BuilderState, action: BuilderAction): Buil
     }
     case "update":
       return mapQuestion(state, action.id, (q) => ({ ...q, ...action.patch }));
+    case "update_logic":
+      return mapQuestion(state, action.id, (q) => ({ ...q, logic: action.logic }));
+    case "update_validation":
+      return mapQuestion(state, action.id, (q) => ({ ...q, validation: action.validation }));
     case "change_type":
       return mapQuestion(state, action.id, (q) => ({
         ...q,
         type: action.questionType,
         options:
-          action.questionType === "multiple_choice"
+          action.questionType === "multiple_choice" || action.questionType === "dropdown"
             ? q.options?.length
               ? q.options
               : [...DEFAULT_OPTIONS]
             : null,
+        validation:
+          action.questionType === "rating"
+            ? q.validation ?? { minRating: 1, maxRating: 5 }
+            : action.questionType === "file"
+              ? q.validation ?? { maxFileSizeMB: 5 }
+              : q.validation,
       }));
     case "remove":
       return { ...state, questions: state.questions.filter((q) => q.id !== action.id) };
@@ -75,6 +95,8 @@ export function builderReducer(state: BuilderState, action: BuilderAction): Buil
         ...state.questions[index],
         id: uuid(),
         options: state.questions[index].options?.slice() ?? null,
+        logic: state.questions[index].logic ? { ...state.questions[index].logic! } : null,
+        validation: state.questions[index].validation ? { ...state.questions[index].validation! } : null,
       };
       const questions = [...state.questions];
       questions.splice(index + 1, 0, copy);
@@ -108,6 +130,8 @@ export function builderReducer(state: BuilderState, action: BuilderAction): Buil
         ...q,
         options: (q.options ?? []).filter((_, i) => i !== action.index),
       }));
+    case "load_questions":
+      return { ...state, questions: action.questions };
     case "reset":
       return action.state;
   }

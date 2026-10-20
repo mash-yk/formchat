@@ -2,14 +2,15 @@
  * Formchat widget loader
  * Usage (paste before </body> on any website):
  *   <script src="https://YOUR-APP/widget.js" data-form="FORM_SLUG" async></script>
+ *
  * Optional attributes:
+ *   data-mode="floating"   floating launcher bubble (default) or "inline"
  *   data-position="left"   launcher on the bottom-left instead of bottom-right
  *   data-color="#e11d48"   override the launcher color (defaults to the form's color)
+ *   data-height="650px"    custom height for inline embed mode
  *   data-open              open the chat automatically on page load
- * JavaScript API: window.Formchat.open(), .close(), .toggle()
  *
- * The chat itself runs inside an iframe (/embed/FORM_SLUG), so the host page's
- * CSS can't break it and it can't break the host page.
+ * JavaScript API: window.Formchat.open(), .close(), .toggle()
  */
 (function () {
   "use strict";
@@ -23,12 +24,13 @@
     return;
   }
 
-  // Guard against the snippet being pasted twice.
+  // Guard against snippet being pasted twice
   window.__formchatLoaded = window.__formchatLoaded || {};
   if (window.__formchatLoaded[slug]) return;
   window.__formchatLoaded[slug] = true;
 
   var origin = new URL(script.src, location.href).origin;
+  var mode = script.getAttribute("data-mode") || "floating";
   var side = script.getAttribute("data-position") === "left" ? "left" : "right";
   var colorOverride = script.getAttribute("data-color");
   var openOnLoad = script.hasAttribute("data-open");
@@ -54,6 +56,37 @@
     return 1.05 / (l + 0.05) >= (l + 0.05) / 0.05 ? "#ffffff" : "#18181b";
   }
 
+  // ── INLINE MODE ────────────────────────────────────────────────────────────
+  if (mode === "inline") {
+    function mountInline() {
+      var container =
+        document.querySelector('[data-formchat-inline="' + slug + '"]') || script.parentNode;
+      var iframe = document.createElement("iframe");
+      iframe.src = origin + "/embed/" + encodeURIComponent(slug) + "?mode=inline";
+      iframe.title = "Chat form";
+      iframe.setAttribute("allow", "clipboard-write");
+      var height = script.getAttribute("data-height") || "600px";
+      css(iframe, {
+        width: "100%",
+        height: height,
+        border: "0",
+        "border-radius": "16px",
+        "box-shadow": "0 4px 24px rgba(0,0,0,0.08)",
+        display: "block",
+        overflow: "hidden",
+      });
+      container.appendChild(iframe);
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", mountInline);
+    } else {
+      mountInline();
+    }
+    return;
+  }
+
+  // ── FLOATING WIDGET MODE ──────────────────────────────────────────────────
   function mount() {
     var isOpen = false;
     var iframe = null;
@@ -122,7 +155,6 @@
         visibility: isOpen ? "visible" : "hidden",
         "pointer-events": isOpen ? "auto" : "none",
       });
-      // On phones the chat is full screen with its own close button; hide the launcher.
       launcher.style.display = isOpen && mobile ? "none" : "flex";
       document.documentElement.style.overflow = isOpen && mobile ? "hidden" : prevOverflow;
     }
@@ -140,7 +172,7 @@
     function open() {
       if (isOpen) return;
       prevOverflow = document.documentElement.style.overflow;
-      ensureIframe(); // lazy: the host page stays fast until someone opens the chat
+      ensureIframe();
       isOpen = true;
       launcher.innerHTML = CLOSE_ICON;
       launcher.setAttribute("aria-label", "Close chat");
@@ -180,14 +212,14 @@
     document.body.appendChild(panel);
     document.body.appendChild(launcher);
 
-    // Use the form's own color/title; hide the widget if the form isn't published.
+    // Fetch form config from server
     fetch(origin + "/api/forms/" + encodeURIComponent(slug) + "/config")
       .then(function (res) {
         return res.ok ? res.json() : null;
       })
       .then(function (config) {
         if (!config) {
-          console.warn("[Formchat] Form \"" + slug + "\" is not published — hiding the widget.");
+          console.warn('[Formchat] Form "' + slug + '" is not published — hiding the widget.');
           launcher.remove();
           panel.remove();
           return;
@@ -197,10 +229,12 @@
           launcher.style.color = readableText(config.primaryColor);
         }
         if (config.title) launcher.title = config.title;
+        if (config.position && !script.getAttribute("data-position")) {
+          side = config.position === "left" ? "left" : "right";
+          layout();
+        }
       })
-      .catch(function () {
-        /* offline or blocked: keep the default launcher */
-      });
+      .catch(function () {});
 
     window.Formchat = { open: open, close: close, toggle: toggle };
     if (openOnLoad) open();

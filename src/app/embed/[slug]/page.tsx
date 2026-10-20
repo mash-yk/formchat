@@ -7,23 +7,47 @@ import { getPublishedForm } from "@/lib/forms";
 export const metadata: Metadata = { title: "Chat", robots: { index: false } };
 
 /**
- * Loaded by widget.js inside an iframe on external websites. The iframe keeps
+ * Loaded by widget.js or inline iframe on external websites. The iframe keeps
  * the host site's CSS and ours fully isolated. Framing is allowed for /embed/*
  * only (see headers() in next.config.ts).
  */
-export default function EmbedPage({ params }: PageProps<"/embed/[slug]">) {
+export default function EmbedPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   return (
-    <main className="h-dvh overflow-hidden bg-white">
+    <main className="h-full min-h-dvh overflow-hidden bg-white dark:bg-umber-950">
       <Suspense fallback={<ChatSkeleton />}>
-        <EmbeddedForm params={params} />
+        <EmbeddedForm params={params} searchParams={searchParams} />
       </Suspense>
     </main>
   );
 }
 
-async function EmbeddedForm({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+async function EmbeddedForm({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const [{ slug }, query] = await Promise.all([
+    params,
+    searchParams ?? Promise.resolve<Record<string, string | string[] | undefined>>({}),
+  ]);
   const form = await getPublishedForm(slug);
   if (!form) return <FormUnavailable embedded />;
-  return <ChatForm form={form} mode="live" source="embed" variant="embed" />;
+
+  const isInline = query?.mode === "inline";
+  return (
+    <ChatForm
+      form={form}
+      mode="live"
+      source="embed"
+      variant={isInline ? "card" : "embed"}
+    />
+  );
 }

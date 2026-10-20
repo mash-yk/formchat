@@ -10,6 +10,8 @@ export function FormTabs({ formId }: { formId: string }) {
   const tabs = [
     { href: base, label: "Build" },
     { href: `${base}/responses`, label: "Responses" },
+    { href: `${base}/analytics`, label: "Analytics" },
+    { href: `${base}/integrations`, label: "Integrations" },
     { href: `${base}/share`, label: "Share & embed" },
   ];
 

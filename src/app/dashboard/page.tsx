@@ -1,14 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
-import { DeleteFormButton } from "@/components/dashboard/delete-form-button";
+import { DashboardFormsList } from "@/components/dashboard/dashboard-forms-list";
 import { NewFormButton } from "@/components/dashboard/new-form-button";
-import { PublishButton } from "@/components/dashboard/publish-button";
-import { StatusBadge } from "@/components/dashboard/status-badge";
-import { buttonClass } from "@/components/ui/button";
-import { LocalTime } from "@/components/ui/local-time";
-import { listOwnedForms, type FormListItem } from "@/lib/forms";
-import { pluralize } from "@/lib/utils";
+import { listOwnedForms } from "@/lib/forms";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -48,49 +42,9 @@ async function DashboardContent() {
       {forms.length === 0 ? (
         <EmptyState />
       ) : (
-        <ul className="divide-y divide-umber-200 overflow-hidden rounded-xl border border-umber-200 bg-white dark:divide-umber-800 dark:border-umber-800 dark:bg-umber-900">
-          {forms.map((form) => (
-            <FormRow key={form.id} form={form} />
-          ))}
-        </ul>
+        <DashboardFormsList forms={forms} />
       )}
     </div>
-  );
-}
-
-function FormRow({ form }: { form: FormListItem }) {
-  const base = `/dashboard/forms/${form.id}`;
-  return (
-    <li className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-      <div className="min-w-0 space-y-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <Link href={base} className="truncate font-medium hover:text-bronze-300 hover:underline">
-            {form.title}
-          </Link>
-          <StatusBadge status={form.status} />
-        </div>
-        <p className="text-xs text-umber-400">
-          {pluralize(form.questionCount, "question")} ·{" "}
-          <Link href={`${base}/responses`} className="hover:underline">
-            {pluralize(form.responseCount, "response")}
-          </Link>{" "}
-          · Updated <LocalTime iso={form.updated_at} style="relative" />
-        </p>
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <Link href={base} className={buttonClass("secondary", "sm")}>
-          Edit
-        </Link>
-        <Link href={`${base}/responses`} className={buttonClass("secondary", "sm")}>
-          Responses
-        </Link>
-        <Link href={`${base}/share`} className={buttonClass("secondary", "sm")}>
-          Share
-        </Link>
-        <PublishButton formId={form.id} status={form.status} />
-        <DeleteFormButton formId={form.id} title={form.title} responseCount={form.responseCount} />
-      </div>
-    </li>
   );
 }
 

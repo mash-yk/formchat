@@ -2,9 +2,20 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ArrowDown, ArrowUp, Copy, GripVertical, Plus, Trash2, X } from "lucide-react";
-import { useEffect, useRef } from "react";
-import { QUESTION_TYPES, type QuestionDraft } from "@/lib/types";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  GripVertical,
+  Plus,
+  Split,
+  Trash2,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { QUESTION_TYPES, type ConditionalOperator, type QuestionDraft } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { LIMITS, QUESTION_TYPE_LABELS } from "@/lib/validation";
 import { inputClass } from "../ui/button";
@@ -14,6 +25,7 @@ type Props = {
   question: QuestionDraft;
   index: number;
   count: number;
+  priorQuestions: QuestionDraft[];
   errors: Record<string, string>; // keys like "label", "options", "options.1"
   autoFocus: boolean;
   dispatch: React.Dispatch<BuilderAction>;
@@ -23,10 +35,19 @@ const iconButton =
   "grid size-8 place-items-center rounded-lg text-umber-400 transition hover:bg-umber-100 hover:text-umber-900 " +
   "disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-umber-800 dark:hover:text-umber-100";
 
-export function QuestionCard({ question: q, index, count, errors, autoFocus, dispatch }: Props) {
+export function QuestionCard({
+  question: q,
+  index,
+  count,
+  priorQuestions,
+  errors,
+  autoFocus,
+  dispatch,
+}: Props) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
     useSortable({ id: q.id });
   const labelRef = useRef<HTMLInputElement>(null);
+  const [showLogic, setShowLogic] = useState(Boolean(q.logic?.dependsOn));
 
   useEffect(() => {
     if (autoFocus) labelRef.current?.focus();
@@ -35,6 +56,8 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
   const labelError = errors.label;
   const optionsError = errors.options;
   const n = index + 1;
+
+  const parentQuestion = priorQuestions.find((pq) => pq.id === q.logic?.dependsOn);
 
   return (
     <li
@@ -68,7 +91,11 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
           id={`type-${q.id}`}
           value={q.type}
           onChange={(e) =>
-            dispatch({ type: "change_type", id: q.id, questionType: e.target.value as QuestionDraft["type"] })
+            dispatch({
+              type: "change_type",
+              id: q.id,
+              questionType: e.target.value as QuestionDraft["type"],
+            })
           }
           className="h-8 rounded-lg border border-umber-200 bg-white px-2 text-xs font-medium text-umber-700 dark:border-umber-700 dark:bg-umber-950 dark:text-umber-200"
         >
@@ -83,7 +110,9 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
           <input
             type="checkbox"
             checked={q.required}
-            onChange={(e) => dispatch({ type: "update", id: q.id, patch: { required: e.target.checked } })}
+            onChange={(e) =>
+              dispatch({ type: "update", id: q.id, patch: { required: e.target.checked } })
+            }
             className="peer sr-only"
           />
           <span
@@ -159,9 +188,12 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
           )}
         </div>
 
-        {q.type === "multiple_choice" && (
+        {/* Options for Multiple Choice or Dropdown */}
+        {(q.type === "multiple_choice" || q.type === "dropdown") && (
           <fieldset className="space-y-2">
-            <legend className="mb-1 text-xs font-medium text-umber-400">Options</legend>
+            <legend className="mb-1 text-xs font-medium text-umber-400">
+              {q.type === "dropdown" ? "Dropdown Choices" : "Choices"}
+            </legend>
             {(q.options ?? []).map((option, i) => {
               const err = errors[`options.${i}`];
               return (
@@ -169,7 +201,10 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
                   <div className="flex items-center gap-2">
                     <span
                       aria-hidden
-                      className="size-4 shrink-0 rounded-full border-2 border-umber-300 dark:border-umber-600"
+                      className={cn(
+                        "size-4 shrink-0 border-2 border-umber-300 dark:border-umber-600",
+                        q.type === "dropdown" ? "rounded-xs" : "rounded-full",
+                      )}
                     />
                     <input
                       value={option}
@@ -207,26 +242,248 @@ export function QuestionCard({ question: q, index, count, errors, autoFocus, dis
           </fieldset>
         )}
 
-        {q.type === "yes_no" && (
-          <div className="flex gap-2" aria-hidden>
-            {["Yes", "No"].map((l) => (
-              <span
-                key={l}
-                className="rounded-full border border-umber-300 px-3 py-1 text-xs text-umber-400 dark:border-umber-700"
-              >
-                {l}
-              </span>
-            ))}
+        {q.type === "rating" && (
+          <div className="flex flex-wrap items-center gap-3 text-xs text-umber-600 dark:text-umber-400">
+            <span>Rating scale:</span>
+            <label className="inline-flex items-center gap-1.5">
+              <input
+                type="radio"
+                name={`rating-${q.id}`}
+                checked={(q.validation?.maxRating ?? 5) === 5}
+                onChange={() =>
+                  dispatch({
+                    type: "update_validation",
+                    id: q.id,
+                    validation: { ...(q.validation ?? {}), minRating: 1, maxRating: 5 },
+                  })
+                }
+              />
+              1 to 5 Stars
+            </label>
+            <label className="inline-flex items-center gap-1.5">
+              <input
+                type="radio"
+                name={`rating-${q.id}`}
+                checked={q.validation?.maxRating === 10}
+                onChange={() =>
+                  dispatch({
+                    type: "update_validation",
+                    id: q.id,
+                    validation: { ...(q.validation ?? {}), minRating: 1, maxRating: 10 },
+                  })
+                }
+              />
+              1 to 10 Scale
+            </label>
           </div>
         )}
 
-        {(q.type === "text" || q.type === "email") && (
-          <p className="text-xs text-umber-400">
-            {q.type === "email"
-              ? "Respondents type an email address — it’s checked for a valid format."
-              : "Respondents type a free-text answer."}
-          </p>
+        {q.type === "file" && (
+          <div className="flex flex-wrap items-center gap-3 text-xs text-umber-600 dark:text-umber-400">
+            <span>Max file size:</span>
+            <select
+              value={q.validation?.maxFileSizeMB ?? 5}
+              onChange={(e) =>
+                dispatch({
+                  type: "update_validation",
+                  id: q.id,
+                  validation: { ...(q.validation ?? {}), maxFileSizeMB: Number(e.target.value) },
+                })
+              }
+              className="rounded-md border border-umber-200 bg-white px-2 py-1 text-xs dark:border-umber-700 dark:bg-umber-950"
+            >
+              <option value={2}>2 MB</option>
+              <option value={5}>5 MB</option>
+              <option value={10}>10 MB</option>
+              <option value={25}>25 MB</option>
+            </select>
+            <span className="text-umber-400">(Supports documents, images, PDF)</span>
+          </div>
         )}
+
+        {q.type === "date" && (
+          <div className="flex flex-wrap items-center gap-4 text-xs text-umber-600 dark:text-umber-400">
+            <label className="inline-flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={q.validation?.allowPast === false}
+                onChange={(e) =>
+                  dispatch({
+                    type: "update_validation",
+                    id: q.id,
+                    validation: { ...(q.validation ?? {}), allowPast: !e.target.checked },
+                  })
+                }
+              />
+              Future dates only
+            </label>
+            <label className="inline-flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={q.validation?.allowFuture === false}
+                onChange={(e) =>
+                  dispatch({
+                    type: "update_validation",
+                    id: q.id,
+                    validation: { ...(q.validation ?? {}), allowFuture: !e.target.checked },
+                  })
+                }
+              />
+              Past dates only
+            </label>
+          </div>
+        )}
+
+        {/* Conditional Logic Accordion */}
+        <div className="pt-1">
+          <button
+            type="button"
+            onClick={() => setShowLogic(!showLogic)}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-umber-500 hover:text-umber-900 dark:text-umber-400 dark:hover:text-umber-200"
+          >
+            <Split className="size-3.5" />
+            {q.logic?.dependsOn ? (
+              <span className="text-bronze-600 font-semibold dark:text-bronze-400">
+                Conditional logic active
+              </span>
+            ) : (
+              "Add conditional logic"
+            )}
+            {showLogic ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
+          </button>
+
+          {showLogic && (
+            <div className="mt-2 rounded-lg border border-umber-200 bg-umber-50/70 p-3 text-xs dark:border-umber-800 dark:bg-umber-950/40">
+              {priorQuestions.length === 0 ? (
+                <p className="text-umber-500">
+                  Conditional logic is available from Question 2 onwards. Add a preceding question first.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium text-umber-700 dark:text-umber-300">
+                      Show this question if:
+                    </span>
+                    <select
+                      value={q.logic?.dependsOn ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (!val) {
+                          dispatch({ type: "update_logic", id: q.id, logic: null });
+                        } else {
+                          dispatch({
+                            type: "update_logic",
+                            id: q.id,
+                            logic: {
+                              dependsOn: val,
+                              operator: q.logic?.operator ?? "is_answered",
+                              value: q.logic?.value ?? "",
+                            },
+                          });
+                        }
+                      }}
+                      className="rounded border border-umber-300 bg-white px-2 py-1 text-xs dark:border-umber-700 dark:bg-umber-900"
+                    >
+                      <option value="">Always show (No condition)</option>
+                      {priorQuestions.map((pq, pi) => (
+                        <option key={pq.id} value={pq.id}>
+                          Q{pi + 1}: {pq.label || `Question ${pi + 1}`}
+                        </option>
+                      ))}
+                    </select>
+
+                    {q.logic?.dependsOn && (
+                      <select
+                        value={q.logic.operator}
+                        onChange={(e) =>
+                          dispatch({
+                            type: "update_logic",
+                            id: q.id,
+                            logic: {
+                              ...q.logic!,
+                              operator: e.target.value as ConditionalOperator,
+                            },
+                          })
+                        }
+                        className="rounded border border-umber-300 bg-white px-2 py-1 text-xs dark:border-umber-700 dark:bg-umber-900"
+                      >
+                        <option value="is_answered">is answered</option>
+                        <option value="equals">equals</option>
+                        <option value="not_equals">does not equal</option>
+                        <option value="contains">contains</option>
+                      </select>
+                    )}
+
+                    {q.logic?.dependsOn && q.logic.operator !== "is_answered" && (
+                      <>
+                        {parentQuestion?.options?.length ? (
+                          <select
+                            value={q.logic.value ?? ""}
+                            onChange={(e) =>
+                              dispatch({
+                                type: "update_logic",
+                                id: q.id,
+                                logic: { ...q.logic!, value: e.target.value },
+                              })
+                            }
+                            className="rounded border border-umber-300 bg-white px-2 py-1 text-xs dark:border-umber-700 dark:bg-umber-900"
+                          >
+                            <option value="">Select expected value…</option>
+                            {parentQuestion.options.map((opt) => (
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                        ) : parentQuestion?.type === "yes_no" ? (
+                          <select
+                            value={q.logic.value ?? ""}
+                            onChange={(e) =>
+                              dispatch({
+                                type: "update_logic",
+                                id: q.id,
+                                logic: { ...q.logic!, value: e.target.value },
+                              })
+                            }
+                            className="rounded border border-umber-300 bg-white px-2 py-1 text-xs dark:border-umber-700 dark:bg-umber-900"
+                          >
+                            <option value="">Select Yes or No…</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            value={q.logic.value ?? ""}
+                            onChange={(e) =>
+                              dispatch({
+                                type: "update_logic",
+                                id: q.id,
+                                logic: { ...q.logic!, value: e.target.value },
+                              })
+                            }
+                            placeholder="Expected answer…"
+                            className="rounded border border-umber-300 bg-white px-2 py-1 text-xs dark:border-umber-700 dark:bg-umber-900"
+                          />
+                        )}
+                      </>
+                    )}
+
+                    {q.logic?.dependsOn && (
+                      <button
+                        type="button"
+                        onClick={() => dispatch({ type: "update_logic", id: q.id, logic: null })}
+                        className="text-xs text-red-600 hover:underline"
+                      >
+                        Remove rule
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </li>
   );
@@ -238,6 +495,14 @@ function placeholderFor(type: QuestionDraft["type"]) {
       return "e.g. What’s your email address?";
     case "multiple_choice":
       return "e.g. How did you hear about us?";
+    case "dropdown":
+      return "e.g. Select your department or role";
+    case "rating":
+      return "e.g. How satisfied are you with our service?";
+    case "date":
+      return "e.g. When would you like to schedule your session?";
+    case "file":
+      return "e.g. Please upload your document or screenshot";
     case "yes_no":
       return "e.g. Would you recommend us to a friend?";
     default:

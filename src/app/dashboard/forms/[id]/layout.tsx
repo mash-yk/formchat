@@ -2,6 +2,7 @@ import { ArrowLeft, ExternalLink } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { DeleteFormButton } from "@/components/dashboard/delete-form-button";
+import { DuplicateFormButton } from "@/components/dashboard/duplicate-form-button";
 import { FormTabs } from "@/components/dashboard/form-tabs";
 import { PublishButton } from "@/components/dashboard/publish-button";
 import { StatusBadge } from "@/components/dashboard/status-badge";
@@ -59,6 +60,7 @@ async function FormHeader({ params }: { params: Promise<{ id: string }> }) {
             </a>
           )}
           <PublishButton formId={form.id} status={form.status} />
+          <DuplicateFormButton formId={form.id} />
           <DeleteFormButton
             formId={form.id}
             title={form.title}

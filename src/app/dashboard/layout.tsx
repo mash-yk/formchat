@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { Logo } from "@/components/logo";
+import { isAdminUser } from "@/lib/admin";
 import { requireUser } from "@/lib/auth";
 import { logout } from "../(auth)/actions";
 
@@ -26,8 +27,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
 async function UserMenu() {
   const user = await requireUser();
+  const admin = isAdminUser(user);
+
   return (
     <div className="flex items-center gap-3">
+      {admin && (
+        <Link
+          href="/admin"
+          className="rounded-lg bg-bronze-100 px-2.5 py-1 text-xs font-semibold text-bronze-800 transition hover:bg-bronze-200 dark:bg-bronze-950 dark:text-bronze-300 dark:hover:bg-bronze-900"
+        >
+          Admin Panel
+        </Link>
+      )}
       <span className="hidden truncate text-sm text-umber-600 sm:block dark:text-umber-400">
         {user.email}
       </span>
