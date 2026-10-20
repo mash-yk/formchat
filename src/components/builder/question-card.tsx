@@ -87,24 +87,27 @@ export function QuestionCard({
         <label className="sr-only" htmlFor={`type-${q.id}`}>
           Question type
         </label>
-        <select
-          id={`type-${q.id}`}
-          value={q.type}
-          onChange={(e) =>
-            dispatch({
-              type: "change_type",
-              id: q.id,
-              questionType: e.target.value as QuestionDraft["type"],
-            })
-          }
-          className="h-8 rounded-lg border border-umber-200 bg-white px-2 text-xs font-medium text-umber-700 dark:border-umber-700 dark:bg-umber-950 dark:text-umber-200"
-        >
-          {QUESTION_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {QUESTION_TYPE_LABELS[t]}
-            </option>
-          ))}
-        </select>
+        <div className="relative inline-flex items-center">
+          <select
+            id={`type-${q.id}`}
+            value={q.type}
+            onChange={(e) =>
+              dispatch({
+                type: "change_type",
+                id: q.id,
+                questionType: e.target.value as QuestionDraft["type"],
+              })
+            }
+            className="h-8 appearance-none rounded-lg border border-umber-200 bg-white pr-7 pl-2.5 text-xs font-medium text-umber-700 transition hover:border-umber-300 focus:border-bronze-500 focus:ring-1 focus:ring-bronze-500/20 dark:border-umber-700 dark:bg-umber-950 dark:text-umber-200"
+          >
+            {QUESTION_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {QUESTION_TYPE_LABELS[t]}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-2 size-3.5 text-umber-400" />
+        </div>
 
         <label className="ml-2 inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-umber-600 select-none dark:text-umber-400">
           <input

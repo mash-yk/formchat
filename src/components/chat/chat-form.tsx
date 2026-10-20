@@ -2,17 +2,23 @@
 
 import {
   Bot,
+  Calendar,
+  Check,
   ChevronDown,
+  ChevronRight,
   Paperclip,
   RotateCcw,
+  Search,
   SendHorizontal,
   Smile,
   Sparkles,
   Star,
+  UploadCloud,
   User,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { isQuestionConditionMet } from "@/lib/conditional";
 import { readableTextColor, resolveSettings } from "@/lib/settings";
 import type { ChatFormData, ChatQuestion, ResponseSource } from "@/lib/types";
@@ -377,7 +383,7 @@ export function ChatForm({
       {/* Input area */}
       <div
         className={cn(
-          "border-t border-umber-200 bg-white p-3 dark:border-umber-800 dark:bg-umber-900",
+          "relative border-t border-umber-200 bg-white p-3 dark:border-umber-800 dark:bg-umber-900",
         )}
       >
         <input
@@ -529,6 +535,621 @@ function TypingIndicator({ theme }: { theme?: string }) {
   );
 }
 
+const RATING_SENTIMENTS: Record<number, string> = {
+  1: "Poor 😞",
+  2: "Fair 😐",
+  3: "Good 🙂",
+  4: "Very Good 😊",
+  5: "Excellent! 🌟",
+};
+
+function InteractiveChoices({
+  question,
+  onAnswer,
+  skip,
+  errorText,
+}: {
+  question: ChatQuestion;
+  onAnswer: (value: string) => void;
+  skip?: React.ReactNode;
+  errorText?: React.ReactNode;
+}) {
+  if (question.type === "yes_no") {
+    return (
+      <div className="w-full">
+        {errorText}
+        <div className="flex flex-wrap items-center gap-2.5" role="group" aria-label={question.label}>
+          <button
+            type="button"
+            onClick={() => onAnswer("yes")}
+            className="group flex flex-1 min-w-[100px] items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50/70 px-4 py-2.5 text-sm font-semibold text-emerald-800 transition-all hover:bg-emerald-600 hover:text-white hover:border-emerald-600 hover:shadow-md active:scale-95 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-600 dark:hover:text-white"
+          >
+            <Check className="size-4 transition-transform group-hover:scale-110" />
+            <span>Yes</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onAnswer("no")}
+            className="group flex flex-1 min-w-[100px] items-center justify-center gap-2 rounded-xl border border-umber-300 bg-umber-50/70 px-4 py-2.5 text-sm font-semibold text-umber-800 transition-all hover:bg-umber-600 hover:text-white hover:border-umber-600 hover:shadow-md active:scale-95 dark:border-umber-700 dark:bg-umber-900/40 dark:text-umber-200 dark:hover:bg-umber-600 dark:hover:text-white"
+          >
+            <X className="size-4 transition-transform group-hover:scale-110" />
+            <span>No</span>
+          </button>
+          {skip}
+        </div>
+      </div>
+    );
+  }
+
+  // Multiple Choice with A, B, C letter badges
+  const options = question.options ?? [];
+  return (
+    <div className="w-full">
+      {errorText}
+      <div className="flex flex-wrap items-center gap-2" role="group" aria-label={question.label}>
+        {options.map((opt, idx) => {
+          const letter = String.fromCharCode(65 + (idx % 26));
+          return (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => onAnswer(opt)}
+              className="group flex items-center gap-2.5 rounded-xl border border-umber-300 bg-white px-3.5 py-2 text-sm font-medium text-umber-800 transition-all hover:border-(--fc-primary) hover:bg-(--fc-primary)/5 hover:text-(--fc-primary) hover:shadow-xs active:scale-[0.98] dark:border-umber-700 dark:bg-umber-950 dark:text-umber-200 dark:hover:bg-(--fc-primary)/10"
+            >
+              <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-umber-100 text-[11px] font-mono font-bold text-umber-600 transition-colors group-hover:bg-(--fc-primary) group-hover:text-(--fc-on-primary) dark:bg-umber-800 dark:text-umber-300">
+                {letter}
+              </span>
+              <span>{opt}</span>
+              <ChevronRight className="size-3.5 text-umber-400 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100 group-hover:text-(--fc-primary)" />
+            </button>
+          );
+        })}
+        {skip}
+      </div>
+    </div>
+  );
+}
+
+function InteractiveDropdown({
+  question,
+  onAnswer,
+  skip,
+  errorText,
+}: {
+  question: ChatQuestion;
+  onAnswer: (value: string) => void;
+  skip?: React.ReactNode;
+  errorText?: React.ReactNode;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selected, setSelected] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const rawOptions = question.options ?? [];
+  const filteredOptions = useMemo(() => {
+    if (!searchQuery.trim()) return rawOptions;
+    const q = searchQuery.toLowerCase();
+    return rawOptions.filter((opt) => opt.toLowerCase().includes(q));
+  }, [rawOptions, searchQuery]);
+
+  // Click outside to dismiss
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+        setSearchQuery("");
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  // Auto-focus search input when popover opens if long list
+  useEffect(() => {
+    if (isOpen && rawOptions.length >= 4) {
+      setTimeout(() => searchInputRef.current?.focus(), 50);
+    }
+  }, [isOpen, rawOptions.length]);
+
+  const handleSelect = (option: string) => {
+    setSelected(option);
+    setIsOpen(false);
+    setSearchQuery("");
+    onAnswer(option);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen) {
+      if (e.key === "Enter" || e.key === "ArrowDown" || e.key === " ") {
+        e.preventDefault();
+        setIsOpen(true);
+      }
+      return;
+    }
+
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setIsOpen(false);
+      setSearchQuery("");
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev + 1) % Math.max(1, filteredOptions.length));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightedIndex((prev) =>
+        (prev - 1 + filteredOptions.length) % Math.max(1, filteredOptions.length),
+      );
+    } else if (e.key === "Enter" && filteredOptions.length > 0) {
+      e.preventDefault();
+      const choice = filteredOptions[highlightedIndex] ?? filteredOptions[0];
+      if (choice) handleSelect(choice);
+    }
+  };
+
+  return (
+    <div ref={containerRef} className="relative w-full">
+      {errorText}
+
+      {/* Upward floating popover menu */}
+      {isOpen && (
+        <div
+          role="listbox"
+          aria-label={question.label}
+          className="absolute bottom-full mb-2 left-0 right-0 z-50 flex max-h-64 flex-col overflow-hidden rounded-2xl border border-umber-200/90 bg-white/95 p-1.5 shadow-2xl shadow-umber-950/20 backdrop-blur-md transition-all duration-150 animate-in fade-in-0 zoom-in-95 dark:border-umber-700/80 dark:bg-umber-950/95 dark:shadow-black/60"
+        >
+          {rawOptions.length >= 4 && (
+            <div className="relative mb-1 border-b border-umber-100 pb-1.5 dark:border-umber-800">
+              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-umber-400" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setHighlightedIndex(0);
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder="Type to filter..."
+                className="w-full rounded-lg bg-umber-50/80 py-1.5 pr-3 pl-8 text-xs text-umber-900 placeholder:text-umber-400 outline-none focus:ring-1 focus:ring-(--fc-primary) dark:bg-umber-900/60 dark:text-umber-100 dark:placeholder:text-umber-500"
+              />
+            </div>
+          )}
+
+          <div className="max-h-48 space-y-0.5 overflow-y-auto overscroll-contain pr-0.5">
+            {filteredOptions.length === 0 ? (
+              <p className="py-4 text-center text-xs text-umber-400 dark:text-umber-500">
+                No matching options found
+              </p>
+            ) : (
+              filteredOptions.map((opt, idx) => {
+                const isHighlighted = idx === highlightedIndex;
+                const isCurrent = opt === selected;
+                return (
+                  <button
+                    key={opt}
+                    type="button"
+                    role="option"
+                    aria-selected={isCurrent}
+                    onMouseEnter={() => setHighlightedIndex(idx)}
+                    onClick={() => handleSelect(opt)}
+                    className={cn(
+                      "group flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs sm:text-sm font-medium transition-colors",
+                      isCurrent || isHighlighted
+                        ? "bg-(--fc-primary)/10 text-(--fc-primary) dark:bg-(--fc-primary)/20"
+                        : "text-umber-800 hover:bg-umber-100/70 dark:text-umber-200 dark:hover:bg-umber-900/60",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "flex size-5 shrink-0 items-center justify-center rounded-md text-[11px] font-mono font-semibold transition-colors",
+                        isCurrent || isHighlighted
+                          ? "bg-(--fc-primary) text-(--fc-on-primary)"
+                          : "bg-umber-100 text-umber-600 dark:bg-umber-800 dark:text-umber-300",
+                      )}
+                    >
+                      {idx + 1}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate">{opt}</span>
+                    <Check
+                      className={cn(
+                        "size-4 shrink-0 transition-opacity",
+                        isCurrent ? "opacity-100 text-(--fc-primary)" : "opacity-0 group-hover:opacity-40",
+                      )}
+                    />
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Trigger Row with Send Button */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setIsOpen((prev) => !prev)}
+          onKeyDown={handleKeyDown}
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
+          aria-label={question.label}
+          className={cn(
+            "group flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border bg-white px-3.5 py-2.5 text-left text-sm transition outline-none dark:bg-umber-950",
+            isOpen
+              ? "border-(--fc-primary) ring-2 ring-(--fc-primary)/20"
+              : "border-umber-300 hover:border-umber-400 dark:border-umber-700 dark:hover:border-umber-600",
+          )}
+        >
+          <span
+            className={cn(
+              "truncate",
+              selected
+                ? "font-medium text-umber-900 dark:text-umber-100"
+                : "text-umber-400 dark:text-umber-500",
+            )}
+          >
+            {selected || "Select an option…"}
+          </span>
+          <ChevronDown
+            className={cn(
+              "size-4 shrink-0 text-umber-500 transition-transform duration-200",
+              isOpen && "rotate-180 text-(--fc-primary)",
+            )}
+          />
+        </button>
+        {skip}
+        <button
+          type="button"
+          disabled={!selected}
+          onClick={() => {
+            if (selected) onAnswer(selected);
+          }}
+          aria-label="Send"
+          className="grid size-11 shrink-0 place-items-center rounded-xl bg-(--fc-primary) text-(--fc-on-primary) transition hover:opacity-90 disabled:opacity-40"
+        >
+          <SendHorizontal className="size-5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function InteractiveRating({
+  question,
+  onAnswer,
+  skip,
+  errorText,
+}: {
+  question: ChatQuestion;
+  onAnswer: (value: string) => void;
+  skip?: React.ReactNode;
+  errorText?: React.ReactNode;
+}) {
+  const [hoverRating, setHoverRating] = useState<number | null>(null);
+  const minRating = question.validation?.minRating ?? 1;
+  const maxRating = question.validation?.maxRating ?? 5;
+  const count = maxRating - minRating + 1;
+  const ratings = Array.from({ length: count }, (_, i) => minRating + i);
+  const isFiveStar = count === 5 && minRating === 1;
+
+  return (
+    <div className="w-full space-y-2">
+      {errorText}
+
+      {/* Dynamic Sentiment Indicator */}
+      <div className="flex h-5 items-center justify-between px-1 text-xs font-medium">
+        {isFiveStar ? (
+          <span className="text-amber-700 transition-all duration-150 dark:text-amber-300">
+            {hoverRating ? RATING_SENTIMENTS[hoverRating] ?? "" : "Hover to preview rating"}
+          </span>
+        ) : (
+          <>
+            <span className="text-umber-500">1: Not likely</span>
+            {hoverRating !== null && (
+              <span className="font-semibold text-(--fc-primary)">Score: {hoverRating}</span>
+            )}
+            <span className="text-umber-500">10: Extremely likely</span>
+          </>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2" role="group" aria-label={question.label}>
+        {ratings.map((n) => {
+          const isHovered = hoverRating !== null && n <= hoverRating;
+          if (isFiveStar) {
+            return (
+              <button
+                key={n}
+                type="button"
+                onMouseEnter={() => setHoverRating(n)}
+                onMouseLeave={() => setHoverRating(null)}
+                onClick={() => onAnswer(String(n))}
+                className={cn(
+                  "group relative flex size-10 sm:size-11 items-center justify-center rounded-xl border transition-all duration-150 active:scale-95",
+                  isHovered
+                    ? "border-amber-400 bg-amber-50 shadow-sm scale-110 dark:border-amber-500 dark:bg-amber-950/40"
+                    : "border-umber-200 bg-white hover:border-amber-300 dark:border-umber-800 dark:bg-umber-950",
+                )}
+                aria-label={`Rating ${n} of 5`}
+              >
+                <Star
+                  className={cn(
+                    "size-5 transition-transform duration-150",
+                    isHovered
+                      ? "fill-amber-400 text-amber-500 scale-110"
+                      : "fill-amber-100 text-amber-300 dark:fill-amber-950 dark:text-amber-700",
+                  )}
+                />
+              </button>
+            );
+          }
+
+          // NPS 10-point scale
+          const isSelectedOrHovered = hoverRating !== null && n <= hoverRating;
+          return (
+            <button
+              key={n}
+              type="button"
+              onMouseEnter={() => setHoverRating(n)}
+              onMouseLeave={() => setHoverRating(null)}
+              onClick={() => onAnswer(String(n))}
+              className={cn(
+                "flex size-8 sm:size-9 items-center justify-center rounded-lg border text-xs sm:text-sm font-semibold transition-all duration-150 active:scale-95",
+                isSelectedOrHovered
+                  ? "border-(--fc-primary) bg-(--fc-primary) text-(--fc-on-primary) shadow-sm scale-105"
+                  : "border-umber-200 bg-white text-umber-700 hover:border-(--fc-primary) dark:border-umber-700 dark:bg-umber-950 dark:text-umber-200",
+              )}
+              aria-label={`Rating ${n} of ${maxRating}`}
+            >
+              {n}
+            </button>
+          );
+        })}
+        {skip}
+      </div>
+    </div>
+  );
+}
+
+function InteractiveDatePicker({
+  question,
+  draft,
+  setDraft,
+  onAnswer,
+  inputRef,
+  skip,
+  errorText,
+}: {
+  question: ChatQuestion;
+  draft: string;
+  setDraft: (v: string) => void;
+  onAnswer: (value: string) => void;
+  inputRef: React.RefObject<(HTMLInputElement & HTMLTextAreaElement) | null>;
+  skip?: React.ReactNode;
+  errorText?: React.ReactNode;
+}) {
+  const handleQuickPick = (daysOffset: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + daysOffset);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const dateStr = `${yyyy}-${mm}-${dd}`;
+    setDraft(dateStr);
+    onAnswer(dateStr);
+  };
+
+  return (
+    <div className="w-full space-y-2">
+      {errorText}
+
+      {/* Quick Select Chips */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-xs">
+        <span className="mr-0.5 text-[11px] font-medium text-umber-400 dark:text-umber-500">
+          Quick pick:
+        </span>
+        <button
+          type="button"
+          onClick={() => handleQuickPick(0)}
+          className="rounded-lg border border-umber-200 bg-umber-50/80 px-2.5 py-1 font-medium text-umber-700 transition hover:border-umber-300 hover:bg-umber-100 dark:border-umber-800 dark:bg-umber-900/60 dark:text-umber-300"
+        >
+          Today
+        </button>
+        <button
+          type="button"
+          onClick={() => handleQuickPick(1)}
+          className="rounded-lg border border-umber-200 bg-umber-50/80 px-2.5 py-1 font-medium text-umber-700 transition hover:border-umber-300 hover:bg-umber-100 dark:border-umber-800 dark:bg-umber-900/60 dark:text-umber-300"
+        >
+          Tomorrow
+        </button>
+        <button
+          type="button"
+          onClick={() => handleQuickPick(7)}
+          className="rounded-lg border border-umber-200 bg-umber-50/80 px-2.5 py-1 font-medium text-umber-700 transition hover:border-umber-300 hover:bg-umber-100 dark:border-umber-800 dark:bg-umber-900/60 dark:text-umber-300"
+        >
+          Next week
+        </button>
+      </div>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (draft) onAnswer(draft);
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <div className="relative min-w-0 flex-1">
+            <Calendar className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-umber-500" />
+            <input
+              ref={inputRef}
+              type="date"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              aria-label={question.label}
+              className="w-full rounded-xl border border-umber-300 bg-white py-2.5 pr-3.5 pl-10 text-base text-umber-900 outline-none transition focus:border-(--fc-primary) focus:ring-2 focus:ring-(--fc-primary)/20 sm:text-sm dark:border-umber-700 dark:bg-umber-950 dark:text-umber-100"
+            />
+          </div>
+          {skip}
+          <button
+            type="submit"
+            disabled={!draft}
+            aria-label="Send"
+            className="grid size-11 shrink-0 place-items-center rounded-xl bg-(--fc-primary) text-(--fc-on-primary) transition hover:opacity-90 disabled:opacity-40"
+          >
+            <SendHorizontal className="size-5" />
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function InteractiveFileUpload({
+  question,
+  onAnswer,
+  skip,
+  errorText,
+}: {
+  question: ChatQuestion;
+  onAnswer: (value: string) => void;
+  skip?: React.ReactNode;
+  errorText?: React.ReactNode;
+}) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<{
+    name: string;
+    size: number;
+    type: string;
+    dataUrl?: string;
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const processFile = (file: File) => {
+    const maxSizeBytes = (question.validation?.maxFileSizeMB ?? 10) * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      toast.error(`File is too large (max ${question.validation?.maxFileSizeMB ?? 10}MB)`);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setUploadedFile({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        dataUrl: typeof reader.result === "string" ? reader.result : undefined,
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processFile(file);
+  };
+
+  const acceptedTypes = question.validation?.acceptedTypes || ".pdf, image/*, .docx";
+  const isImage = uploadedFile?.type.startsWith("image/") && uploadedFile.dataUrl;
+
+  return (
+    <div className="w-full space-y-2">
+      {errorText}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={question.validation?.acceptedTypes}
+        onChange={handleFileChange}
+        className="hidden"
+      />
+
+      {uploadedFile ? (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-umber-300 bg-amber-50/50 p-3 dark:border-umber-700 dark:bg-umber-950">
+          <div className="flex min-w-0 items-center gap-2.5">
+            {isImage ? (
+              <img
+                src={uploadedFile.dataUrl}
+                alt="File preview"
+                className="size-10 rounded-lg object-cover ring-1 ring-black/10"
+              />
+            ) : (
+              <div className="grid size-10 place-items-center rounded-lg bg-bronze-100 dark:bg-bronze-900/50 text-bronze-700 dark:text-bronze-300">
+                <Paperclip className="size-5" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="truncate text-xs font-semibold text-umber-900 dark:text-umber-100">
+                {uploadedFile.name}
+              </p>
+              <p className="text-[10px] text-umber-500">
+                {Math.round(uploadedFile.size / 1024)} KB
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setUploadedFile(null)}
+              aria-label="Remove file"
+              className="grid size-8 place-items-center rounded-lg text-umber-500 hover:bg-umber-200/50 dark:hover:bg-umber-800"
+            >
+              <X className="size-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onAnswer(JSON.stringify(uploadedFile))}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-(--fc-primary) px-3.5 py-2 text-xs font-semibold text-(--fc-on-primary) transition hover:opacity-90 shadow-xs"
+            >
+              <span>Send</span>
+              <SendHorizontal className="size-3.5" />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          className={cn(
+            "group flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed p-4 text-center transition-all",
+            isDragging
+              ? "border-(--fc-primary) bg-(--fc-primary)/5 scale-[1.01]"
+              : "border-umber-300 bg-umber-50/40 hover:border-(--fc-primary) hover:bg-umber-50 dark:border-umber-700 dark:bg-umber-950/40 dark:hover:border-(--fc-primary)",
+          )}
+        >
+          <div className="grid size-9 place-items-center rounded-full bg-umber-100 text-umber-600 transition group-hover:bg-(--fc-primary)/10 group-hover:text-(--fc-primary) dark:bg-umber-800 dark:text-umber-300">
+            <UploadCloud className="size-5 transition-transform group-hover:-translate-y-0.5" />
+          </div>
+          <div className="space-y-0.5">
+            <p className="text-xs font-semibold text-umber-900 dark:text-umber-100">
+              Click to upload or drag & drop
+            </p>
+            <p className="text-[11px] text-umber-500 dark:text-umber-400">
+              {acceptedTypes} (max {question.validation?.maxFileSizeMB ?? 10}MB)
+            </p>
+          </div>
+        </div>
+      )}
+
+      {!uploadedFile && skip && <div className="flex justify-end">{skip}</div>}
+    </div>
+  );
+}
+
 function AnswerInput({
   question,
   draft,
@@ -544,16 +1165,6 @@ function AnswerInput({
   inputRef: React.RefObject<(HTMLInputElement & HTMLTextAreaElement) | null>;
   onAnswer: (value: string) => void;
 }) {
-  const [selectedDropdown, setSelectedDropdown] = useState("");
-  const [hoverRating, setHoverRating] = useState<number | null>(null);
-  const [uploadedFile, setUploadedFile] = useState<{
-    name: string;
-    size: number;
-    type: string;
-    dataUrl?: string;
-  } | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const errorId = `fc-error-${question.id}`;
   const skip = !question.required && (
     <button
@@ -573,224 +1184,64 @@ function AnswerInput({
 
   // 1. Multiple Choice / Yes-No
   if (question.type === "multiple_choice" || question.type === "yes_no") {
-    const choices =
-      question.type === "yes_no"
-        ? [
-            { value: "yes", label: "Yes" },
-            { value: "no", label: "No" },
-          ]
-        : (question.options ?? []).map((o) => ({ value: o, label: o }));
-
     return (
-      <div>
-        {errorText}
-        <div className="flex flex-wrap items-center gap-2" role="group" aria-label={question.label}>
-          {choices.map((c) => (
-            <button
-              key={c.value}
-              type="button"
-              onClick={() => onAnswer(c.value)}
-              className="rounded-full border border-(--fc-primary) px-4 py-2 text-sm font-medium text-(--fc-primary) transition hover:bg-(--fc-primary) hover:text-(--fc-on-primary) focus-visible:bg-(--fc-primary) focus-visible:text-(--fc-on-primary) focus-visible:outline-none"
-            >
-              {c.label}
-            </button>
-          ))}
-          {skip}
-        </div>
-      </div>
+      <InteractiveChoices
+        question={question}
+        onAnswer={onAnswer}
+        skip={skip}
+        errorText={errorText}
+      />
     );
   }
 
   // 2. Dropdown
   if (question.type === "dropdown") {
-    const options = question.options ?? [];
     return (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (selectedDropdown) onAnswer(selectedDropdown);
-        }}
-      >
-        {errorText}
-        <div className="flex items-center gap-2">
-          <div className="relative min-w-0 flex-1">
-            <select
-              value={selectedDropdown}
-              onChange={(e) => setSelectedDropdown(e.target.value)}
-              aria-label={question.label}
-              className="w-full appearance-none rounded-xl border border-umber-300 bg-white px-3.5 py-2.5 pr-9 text-base text-umber-900 outline-none transition focus:border-(--fc-primary) focus:ring-2 focus:ring-(--fc-primary)/20 sm:text-sm dark:border-umber-700 dark:bg-umber-950 dark:text-umber-100"
-            >
-              <option value="">Select an option…</option>
-              {options.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-umber-500" />
-          </div>
-          {skip}
-          <button
-            type="submit"
-            disabled={!selectedDropdown}
-            aria-label="Send"
-            className="grid size-11 shrink-0 place-items-center rounded-xl bg-(--fc-primary) text-(--fc-on-primary) transition hover:opacity-90 disabled:opacity-40"
-          >
-            <SendHorizontal className="size-5" />
-          </button>
-        </div>
-      </form>
+      <InteractiveDropdown
+        question={question}
+        onAnswer={onAnswer}
+        skip={skip}
+        errorText={errorText}
+      />
     );
   }
 
-  // 3. Rating (1 to 5 or 10 stars/buttons)
+  // 3. Rating (1 to 5 stars or NPS 1 to 10)
   if (question.type === "rating") {
-    const minRating = question.validation?.minRating ?? 1;
-    const maxRating = question.validation?.maxRating ?? 5;
-    const count = maxRating - minRating + 1;
-    const ratings = Array.from({ length: count }, (_, i) => minRating + i);
-
     return (
-      <div>
-        {errorText}
-        <div className="flex flex-wrap items-center gap-2" role="group" aria-label={question.label}>
-          {ratings.map((n) => {
-            const isHovered = hoverRating !== null && n <= hoverRating;
-            return (
-              <button
-                key={n}
-                type="button"
-                onMouseEnter={() => setHoverRating(n)}
-                onMouseLeave={() => setHoverRating(null)}
-                onClick={() => onAnswer(String(n))}
-                className={cn(
-                  "flex size-10 items-center justify-center rounded-xl border transition sm:size-11",
-                  isHovered
-                    ? "border-(--fc-primary) bg-(--fc-primary) text-(--fc-on-primary) scale-110 shadow-sm"
-                    : "border-umber-300 bg-white text-umber-700 hover:border-(--fc-primary) dark:border-umber-700 dark:bg-umber-950 dark:text-umber-200",
-                )}
-                aria-label={`Rating ${n} of ${maxRating}`}
-              >
-                <Star
-                  className={cn("size-5", isHovered ? "fill-current" : "text-amber-500 fill-amber-400")}
-                />
-              </button>
-            );
-          })}
-          {skip}
-        </div>
-      </div>
+      <InteractiveRating
+        question={question}
+        onAnswer={onAnswer}
+        skip={skip}
+        errorText={errorText}
+      />
     );
   }
 
   // 4. Date Picker
   if (question.type === "date") {
     return (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (draft) onAnswer(draft);
-        }}
-      >
-        {errorText}
-        <div className="flex items-center gap-2">
-          <div className="relative min-w-0 flex-1">
-            <input
-              ref={inputRef}
-              type="date"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              aria-label={question.label}
-              className="w-full rounded-xl border border-umber-300 bg-white px-3.5 py-2.5 text-base text-umber-900 outline-none transition focus:border-(--fc-primary) focus:ring-2 focus:ring-(--fc-primary)/20 sm:text-sm dark:border-umber-700 dark:bg-umber-950 dark:text-umber-100"
-            />
-          </div>
-          {skip}
-          <button
-            type="submit"
-            disabled={!draft}
-            aria-label="Send"
-            className="grid size-11 shrink-0 place-items-center rounded-xl bg-(--fc-primary) text-(--fc-on-primary) transition hover:opacity-90 disabled:opacity-40"
-          >
-            <SendHorizontal className="size-5" />
-          </button>
-        </div>
-      </form>
+      <InteractiveDatePicker
+        question={question}
+        draft={draft}
+        setDraft={setDraft}
+        onAnswer={onAnswer}
+        inputRef={inputRef}
+        skip={skip}
+        errorText={errorText}
+      />
     );
   }
 
   // 5. File Upload
   if (question.type === "file") {
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        setUploadedFile({
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          dataUrl: typeof reader.result === "string" ? reader.result : undefined,
-        });
-      };
-      reader.readAsDataURL(file);
-    };
-
     return (
-      <div>
-        {errorText}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept={question.validation?.acceptedTypes}
-          onChange={handleFileChange}
-          className="hidden"
-        />
-        {uploadedFile ? (
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-umber-300 bg-umber-50 p-2.5 dark:border-umber-700 dark:bg-umber-950">
-            <div className="flex min-w-0 items-center gap-2">
-              <Paperclip className="size-4 shrink-0 text-bronze-600 dark:text-bronze-400" />
-              <div className="min-w-0">
-                <p className="truncate text-xs font-medium text-umber-900 dark:text-umber-100">
-                  {uploadedFile.name}
-                </p>
-                <p className="text-[10px] text-umber-500">
-                  {Math.round(uploadedFile.size / 1024)} KB
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setUploadedFile(null)}
-                aria-label="Remove file"
-                className="grid size-7 place-items-center rounded-lg text-umber-500 hover:bg-umber-200/50"
-              >
-                <X className="size-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => onAnswer(JSON.stringify(uploadedFile))}
-                className="inline-flex items-center gap-1 rounded-lg bg-(--fc-primary) px-3 py-1.5 text-xs font-semibold text-(--fc-on-primary)"
-              >
-                Submit file <SendHorizontal className="size-3.5" />
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-dashed border-umber-300 bg-umber-50/50 px-4 py-2.5 text-sm font-medium text-umber-700 transition hover:bg-umber-100 hover:border-(--fc-primary) dark:border-umber-700 dark:bg-umber-950 dark:text-umber-300"
-            >
-              <Paperclip className="size-4" />
-              Choose file to upload
-            </button>
-            {skip}
-          </div>
-        )}
-      </div>
+      <InteractiveFileUpload
+        question={question}
+        onAnswer={onAnswer}
+        skip={skip}
+        errorText={errorText}
+      />
     );
   }
 
