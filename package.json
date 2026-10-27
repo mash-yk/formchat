@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "npx tsx --test tests/admin.test.ts tests/conditional.test.ts tests/integrations.test.ts tests/rate-limit.test.ts tests/templates.test.ts tests/validation.test.ts",
+    "test": "npx tsx --test tests/admin.test.ts tests/analytics.test.ts tests/conditional.test.ts tests/export.test.ts tests/integrations.test.ts tests/rate-limit.test.ts tests/security.test.ts tests/templates.test.ts tests/validation.test.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

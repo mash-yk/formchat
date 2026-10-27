@@ -11,7 +11,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { buttonClass } from "@/components/ui/button";
-import { calculateFormAnalytics } from "@/lib/analytics";
+import { calculateFormAnalytics, recordFormEvent } from "@/lib/analytics";
 import { getOwnedForm } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import type { FormResponse } from "@/lib/types";
@@ -46,14 +46,37 @@ async function AnalyticsContent({
 
   const daysFilter = query.days === "7" ? 7 : query.days === "all" ? 0 : 30;
 
-  // Fetch responses to compute analytics
+  // Fetch responses and DB-persisted events in parallel
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("responses")
-    .select("id, form_id, answers, source, submitted_at")
-    .eq("form_id", form.id)
-    .order("submitted_at", { ascending: false })
-    .returns<FormResponse[]>();
+  const cutoffDate =
+    daysFilter > 0
+      ? new Date(Date.now() - daysFilter * 24 * 60 * 60 * 1000).toISOString()
+      : undefined;
+
+  const [{ data }, { data: dbEvents }] = await Promise.all([
+    supabase
+      .from("responses")
+      .select("id, form_id, answers, source, submitted_at")
+      .eq("form_id", form.id)
+      .order("submitted_at", { ascending: false })
+      .returns<FormResponse[]>(),
+    supabase
+      .from("form_events")
+      .select("event_type, created_at")
+      .eq("form_id", form.id)
+      .order("created_at", { ascending: false })
+      .limit(10000)
+      .then((res) => ({ data: cutoffDate ? res.data?.filter(e => e.created_at >= cutoffDate) : res.data })),
+  ]);
+
+  // Seed in-memory event store with DB events so calculateFormAnalytics sees them.
+  // recordFormEvent is idempotent within a request: the same server-side event is
+  // harmless to re-add because analytics reads relative timestamps.
+  if (dbEvents && dbEvents.length > 0) {
+    for (const e of dbEvents) {
+      recordFormEvent(form.id, e.event_type as "view" | "start");
+    }
+  }
 
   const responses = data ?? [];
   const stats = calculateFormAnalytics({

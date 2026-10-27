@@ -2,7 +2,8 @@ import crypto from "node:crypto";
 import type { AnswerSnapshot, ResponseSource, WebhookLog } from "./types";
 import { formatAnswer } from "./validation";
 
-// In-memory store for webhook logs so they persist across requests and work without DB table
+// In-memory store for webhook logs — provides fast reads and a fallback when
+// the DB is unavailable (local dev without SUPABASE_SECRET_KEY).
 const inMemoryWebhookLogs = new Map<string, WebhookLog[]>();
 
 export function getWebhookLogs(formId: string): WebhookLog[] {
@@ -12,6 +13,32 @@ export function getWebhookLogs(formId: string): WebhookLog[] {
 export function recordWebhookLog(log: WebhookLog) {
   const existing = inMemoryWebhookLogs.get(log.form_id) ?? [];
   inMemoryWebhookLogs.set(log.form_id, [log, ...existing].slice(0, 50));
+
+  // Persist to the webhook_logs table asynchronously (best-effort, non-blocking).
+  // Import is deferred to avoid the server-only module in non-server bundles.
+  if (process.env.SUPABASE_SECRET_KEY) {
+    import("./supabase/admin")
+      .then(({ createAdminClient }) => {
+        const supabase = createAdminClient();
+        return supabase.from("webhook_logs").insert({
+          id: log.id,
+          form_id: log.form_id,
+          response_id: log.response_id ?? null,
+          url: log.url,
+          status_code: log.status_code,
+          success: log.success,
+          error: log.error ?? null,
+        });
+      })
+      .then(({ error }) => {
+        if (error) {
+          console.warn("[webhook_logs] Failed to persist log to DB:", error.message);
+        }
+      })
+      .catch((err: unknown) => {
+        console.warn("[webhook_logs] Could not reach DB:", err);
+      });
+  }
 }
 
 export function computeHmacSignature(payload: string, secret: string): string {
@@ -76,6 +103,8 @@ export async function triggerWebhook({
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "User-Agent": "Formchat-Webhook/1.0",
+    "X-Formchat-Event": payload.event,
+    "X-Formchat-Timestamp": payload.timestamp,
   };
 
   if (secret && secret.trim()) {
@@ -183,6 +212,10 @@ View all responses on your Formchat Dashboard.
           text: messageText,
         }),
       });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        console.error("Resend API error:", res.status, text);
+      }
       return { ok: res.ok };
     } catch (e: unknown) {
       console.error("Failed to send email via Resend:", e);

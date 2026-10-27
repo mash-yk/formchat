@@ -11,7 +11,7 @@ Build conversational forms, publish them with a public link, embed them on any w
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Supabase](https://img.shields.io/badge/Supabase-Postgres_%2B_Auth-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com)
-[![Tests](https://img.shields.io/badge/Tests-26%20Passed-3ECF8E?logo=node.js&logoColor=white)](https://nodejs.org)
+[![Tests](https://img.shields.io/badge/Tests-56%20Passed-3ECF8E?logo=node.js&logoColor=white)](https://nodejs.org)
 [![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com)
 
 **[Live demo](https://formchat-five.vercel.app)** · **[Test website with the widget](https://formchat-test-mash.netlify.app/)** · **[Report a bug](https://github.com/mash-yk/formchat/issues)**
@@ -250,19 +250,25 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 ## Automated Testing
 
-Formchat includes an automated test suite executed via the native Node.js Test Runner and TypeScript (`tsx`):
+Formchat includes an automated test suite of **56 tests across 9 suites** executed via the native Node.js Test Runner and TypeScript (`tsx`):
 
 ```bash
 npm test
 ```
 
-### Test Coverage Highlights:
-- **Admin RBAC**: Validates role derivation from `ADMIN_EMAILS`, account suspension, and reactivation locks.
-- **Conditional Logic**: Unit tests operator evaluation (`equals`, `not_equals`, `contains`, `is_answered`), order-dependent visibility filtering, and required-answer omission for hidden branches.
-- **Integrations**: Tests HMAC-SHA256 signature computation and payload hashing against RFC standards.
-- **Rate Limiting & Anti-Spam**: Verifies sliding window rate caps (15/min), honeypot trap detection, and rapid bot submission rejections (< 1200ms).
-- **Templates**: Validates template structures, question ID isolation, and default settings.
-- **Question Validation**: Exhaustively validates answers for text, emails, yes/no, multiple choice, dropdowns, ratings, dates, and file upload limits.
+### Test Suites
+
+| Suite | Tests | Description |
+|-------|-------|-------------|
+| Admin & RBAC | 2 | Role derivation from `ADMIN_EMAILS`, account suspension and reactivation |
+| Analytics Engine | 8 | Completion rates, daily trends, choice breakdowns, rating averages, date filters |
+| Conditional Logic | 7 | Operator evaluation, visibility filtering, hidden-question validation bypass |
+| CSV Export | 12 | Cell escaping, formula injection prevention, UTF-8 BOM, column mapping, deleted questions |
+| Integrations | 1 | HMAC-SHA256 signature computation against RFC standards |
+| Rate Limiting & Anti-Spam | 4 | Sliding window caps, honeypot detection, rapid bot submission rejection |
+| Security Isolation | 10 | Admin role blocking, suspended user enforcement, per-IP isolation, answer tampering prevention |
+| Templates | 3 | Template structures, question ID isolation, default settings |
+| Question Validation | 9 | Text, email, yes/no, multiple choice, dropdown, rating, date, file upload |
 
 ---
 
